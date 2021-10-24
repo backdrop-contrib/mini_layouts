@@ -1,0 +1,11 @@
+name = Mini layouts
+description = Provide blocks which allow positioning content within them in layouts.
+package = Layouts
+type = module
+tags[] = Blocks
+tags[] = Layouts
+tags[] = Site Architecture
+version = BACKDROP_VERSION
+backdrop = 1.x
+
+configure = admin/structure/mini_layouts
