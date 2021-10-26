@@ -122,15 +122,15 @@ function mini_layouts_block_info() {
 /**
  * Implements hook_block_configure().
  */
-function mini_layouts_block_configure($name) {
-  // if ($name) {
-    // $custom_block = mini_layouts_load($name);
-    // $custom_block['name'] = $name;
-  // }
-  // else {
-    // $custom_block = array();
-  // }
-  // return mini_layouts_custom_block_form($custom_block, FALSE);
+function mini_layouts_block_configure($name, $settings = array()) {
+  if ($name) {
+    $custom_block = mini_layouts_load($name);
+    $custom_block['name'] = $name;
+  }
+  else {
+    $custom_block = array();
+  }
+  return mini_layouts_custom_block_form($custom_block, FALSE);
 }
 
 /**
@@ -413,65 +413,31 @@ function mini_layouts_custom_block_save(array $edit, $name = NULL, $langcode = N
  * Pass through to the layouts content editor.
  */
 function mini_layouts_edit_content($name) {
-  dpm($name);
-  $custom_block = mini_layouts_load($name);
   // Load from database to tempstore as Layout pulls from tempstore to build
   // the content form and blocks etc.
-  if (!$display = layout_tempstore_load('mini-layouts-' . $name)) {
-    $display = mini_layouts_layout_load($custom_block);
-    $display->name = 'mini-layouts-' . $name;
+  if (!$layout = layout_tempstore_load($name)) {
+    $config = mini_layouts_load($name);
+    $layout = new MiniLayout($config);
+dpm($layout);
 
     // Don't use layout_set_layout_tempstore(). It locks the layout.
-    tempstore_set('layout.layout', $display->name, $display, 604800);
-    $display->locked = FALSE;
+    tempstore_set('layout.layout', $layout->name, $layout, 604800);
+    $layout->locked = FALSE;
   }
 
-  $display->custom_block = $custom_block;
-
-  $display->setPath('custom_block/' . $name);
+  $layout->setPath('custom_block/' . $name);
   module_load_include('inc', 'layout', 'layout.admin');
-  return backdrop_get_form('layout_content_form', $display);
+  return backdrop_get_form('layout_content_form', $layout);
 }
 
 function mini_layouts_load($name) {
+  // @todo: always return a MiniLayout object
   $configs = layout_get_all_configs('mini_layouts');
   return isset($configs[$name]) ? $configs[$name] : NULL;
-dpm($configs);
-}
-
-function mini_layouts_layout_load($custom_block) {
-  // @todo join instead of two queries?
-  // @todo cache this?
-  // $result = db_query("SELECT * FROM {mini_layouts} WHERE nid = :nid", array(':nid' => $node->nid))->fetchObject();
-  // $blocks = db_query("SELECT * FROM {layout_node_blocks} WHERE nid = :nid", array(':nid' => $node->nid));
-  $config = array();
-  // Create a new display and record that.
-  $layout = new Layout($config);
-  $layout->title = $custom_block['title'];
-  // $layout->module = $result->module;
-  // $layout->layout_template = $result->layout_template;
-  // $layout->settings = unserialize($result->settings);
-  $layout->module = 'mini_layouts';
-  $layout->layout_template = $custom_block['layout_template'];
-  $layout->settings = array(); // unserialize($result->settings);
-  $layout->settings += array(
-      'title' => '',
-      'title_display' => LAYOUT_TITLE_DEFAULT,
-      'title_block' => NULL,
-    );
-  $layout->locked = FALSE;
-  $layout->setPath('custom_block/' . $custom_block['name']);
-
-  // foreach ($blocks as $data) {
-    // $block = unserialize($data->block_data);
-    // $layout->content[$data->uuid] = $block;
-    // $layout->positions[$data->region_id][$data->block_index] = $data->uuid;
-  // }
-
-  return $layout;
 }
 
 function mini_layouts_form_layout_content_form_alter(&$form, &$form_state, $form_id) {
+  form_load_include($form_state, 'inc', 'layout', 'layout.admin');
   if ($form['#layout']->module == 'mini_layouts') {
     $form['actions']['submit']['#submit'] = array('mini_layouts_layout_content_form_submit');
     $form['actions']['cancel']['#access'] = FALSE;
@@ -479,22 +445,11 @@ function mini_layouts_form_layout_content_form_alter(&$form, &$form_state, $form
 }
 
 function mini_layouts_layout_content_form_submit(&$form, &$form_state) {
-  $layout = $form_state['layout'];
-  // Update the block positions based on the hidden position elements.
-  if (!empty($form_state['values']['content']['positions'])) {
-    foreach ($form_state['values']['content']['positions'] as $region_id => $blocks) {
-      if ($blocks) {
-        $uuids = array_filter(explode(',', $blocks));
-        foreach ($uuids as $block_index => $uuid) {
-          if (isset($layout->content[$uuid])) {
-            mini_layouts_save_block($layout, $region_id, $uuid, $block_index);
-          }
-        }
-      }
-    }
-  }
-
-  layout_clear_layout_tempstore('layout-node-' . $layout->node->nid);
+  layout_content_form_submit($form, $form_state);
+  layout_clear_layout_tempstore($form_state['layout']->name);
+  cache()->delete('layout:mini_layouts:config');
+  backdrop_static_reset('mini_layouts_block_info');
+  dpm($form_state['layout']);
 }
 
 function mini_layouts_save_block($layout, $region_id, $uuid, $block_index) {
