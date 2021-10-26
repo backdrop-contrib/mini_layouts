@@ -30,14 +30,14 @@ function mini_layouts_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/structure/mini-layouts/manage/%'] = array(
-    'title' => 'Configure mini layouts',
+    'title' => 'Configure layouts',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('mini_layouts_admin_configure', 4),
     'access arguments' => array('administer blocks'),
     'file' => 'mini_layouts.admin.inc',
   );
   $items['admin/structure/mini-layouts/manage/%/configure'] = array(
-    'title' => 'Configure mini layouts',
+    'title' => 'Configure mini layout',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'context' => MENU_CONTEXT_NONE,
   );
@@ -51,12 +51,11 @@ function mini_layouts_menu() {
     'file' => 'mini_layouts.admin.inc',
   );
   $items['admin/structure/mini-layouts/manage/%/configure-layout-blocks'] = array(
-    'title' => 'Configure layout template',
+    'title' => 'Manage blocks',
     'page callback' => 'mini_layouts_edit_content',
     'page arguments' => array(4),
     'access arguments' => array('administer blocks'),
-    'type' => MENU_CALLBACK,
-    'context' => MENU_CONTEXT_NONE,
+    'type' => MENU_LOCAL_TASK,
     'file' => 'mini_layouts.admin.inc',
   );
   $items['admin/structure/mini-layouts/add'] = array(
