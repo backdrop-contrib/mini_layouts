@@ -302,28 +302,15 @@ function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
  *     body will be saved as a translation of the source language.
  * @param string|NULL $name
  *   Machine name of the block to save, comprised of lower-case letters,
- *   numbers, and underscores. Note: NULL values are still accepted when
- *   creating new nodes to maintain API contiguity.
+ *   numbers, and underscores.
  * @param $langcode
  *   The language code for the block. If set, only the translation is saved.
  */
 function mini_layouts_block_save(array $edit, $name = NULL, $langcode = NULL) {
   $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
   $block = mini_layouts_load($name);
-  $mini_layout = mini_layouts_load($name);
 
   if (!$block) {
-    $block = array(
-      'name' => $name,
-      'info' => '',
-      'title' => '',
-      'description' => '',
-      'body' => array('value' => '', 'format' => ''),
-      'layout_template' => 'boxton',
-    );
-  }
-
-  if (!$mini_layout) {
     $block = array(
       'name' => $name,
       'info' => '',
@@ -402,25 +389,6 @@ function mini_layouts_layout_content_form_submit(&$form, &$form_state) {
   layout_clear_layout_tempstore($form_state['layout']->name);
   cache()->delete('layout:mini_layouts:config');
   backdrop_static_reset('mini_layouts_block_info');
-}
-
-function mini_layouts_save_block($layout, $region_id, $uuid, $block_index) {
-  $block = $layout->content[$uuid];
-
-  $data = array(
-    'nid' => $layout->node->nid,
-    'uuid' => $uuid,
-    'region_id' => $region_id,
-    'block_index' => $block_index,
-    'block_data' => $block,
-    );
-  $exists = db_query('SELECT count(uuid) FROM {layout_node_blocks} WHERE uuid = :uuid', array(':uuid' => $uuid))->fetchField();
-  if ($exists) {
-    backdrop_write_record('layout_node_blocks', $data, 'uuid');
-  }
-  else {
-    backdrop_write_record('layout_node_blocks', $data);
-  }
 }
 
 /**
