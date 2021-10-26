@@ -82,7 +82,7 @@ function mini_layouts_config_info() {
   $prefixes['layout.mini_layouts'] = array(
     'name_key' => 'name',
     'label_key' => 'info',
-    'group' => t('Mini layouts Blocks'),
+    'group' => t('Mini layouts blocks'),
   );
   return $prefixes;
 }

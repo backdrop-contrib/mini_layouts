@@ -43,8 +43,8 @@ function mini_layouts_admin_list() {
         'title' => t('Export'),
         'href' => 'admin/config/development/configuration/single/export',
         'query' => array(
-          'group' => 'Mini Layouts Blocks',
-          'name' => 'block.mini_layouts.' . $name,
+          'group' => 'Mini layouts blocks',
+          'name' => 'layout.mini_layouts.' . $name,
         ),
       );
     }
