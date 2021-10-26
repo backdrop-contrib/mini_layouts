@@ -75,7 +75,7 @@ function mini_layouts_menu() {
  */
 function mini_layouts_config_info() {
   $prefixes['block.mini_layouts'] = array(
-    'name_key' => 'delta',
+    'name_key' => 'name',
     'label_key' => 'info',
     'group' => t('Custom Blocks'),
   );
@@ -96,9 +96,10 @@ function mini_layouts_block_info() {
   }
 
   $blocks = array();
-  $config_names = config_get_names_with_prefix('block.mini_layouts.');
-  foreach ($config_names as $config_name) {
-    $block = config_get($config_name);
+  $config_names = layout_get_all_configs('mini_layouts');
+  dpm($config_names);
+  foreach ($config_names as $block) {
+    // $block = config_get($config_name);
     $block_info = array();
     $block_info['info'] = $block['info'];
     $block_info['description'] = !empty($block['description']) ? $block['description'] : NULL;
@@ -112,7 +113,7 @@ function mini_layouts_block_info() {
     if (empty($block_info['description'])) {
       $block_info['description'] = t('A reusable custom block.');
     }
-    $blocks[$block['delta']] = $block_info;
+    $blocks[$block['name']] = $block_info;
   }
 
   return $blocks;
@@ -121,10 +122,10 @@ function mini_layouts_block_info() {
 /**
  * Implements hook_block_configure().
  */
-function mini_layouts_block_configure($delta) {
-  // if ($delta) {
-    // $custom_block = mini_layouts_custom_block_load($delta);
-    // $custom_block['delta'] = $delta;
+function mini_layouts_block_configure($name) {
+  // if ($name) {
+    // $custom_block = mini_layouts_load($name);
+    // $custom_block['name'] = $name;
   // }
   // else {
     // $custom_block = array();
@@ -135,8 +136,8 @@ function mini_layouts_block_configure($delta) {
 /**
  * Implements hook_block_save().
  */
-function mini_layouts_block_save($delta, &$edit = array()) {
-/*   mini_layouts_custom_block_save($edit, $delta);
+function mini_layouts_block_save($name, &$edit = array()) {
+/*   mini_layouts_custom_block_save($edit, $name);
 
   // Remove values from edit to prevent them from being saved in layout config.
   unset($edit['info']);
@@ -149,9 +150,9 @@ function mini_layouts_block_save($delta, &$edit = array()) {
  *
  * Generates the administrator-defined blocks for display.
  */
-function mini_layouts_block_view($delta = '') {
+function mini_layouts_block_view($name = '') {
   global $language;
-  $block = mini_layouts_custom_block_load($delta, $language->langcode);
+  $block = mini_layouts_load($name);
   if (!$block) {
     return array();
   }
@@ -163,7 +164,7 @@ function mini_layouts_block_view($delta = '') {
 /**
  * Returns information from configuration about a user-created (custom) block.
  *
- * @param $delta
+ * @param $name
  *   ID of the block to get information for.
  * @param $langcode
  *   The language code for loading the block.
@@ -171,19 +172,19 @@ function mini_layouts_block_view($delta = '') {
  * @return array
  *   Associative array of information stored in configuration for this block, or FALSE if it doesn't exist
  *   Array keys:
- *   - delta: Block ID.
+ *   - name: Block ID.
  *   - info: Block description.
  *   - body: Block contents.
  *   - format: Filter ID of the filter format for the body.
  */
-function mini_layouts_custom_block_load($delta, $langcode = LANGUAGE_NONE) {
+function mini_layouts_load_orig($name, $langcode = LANGUAGE_NONE) {
   // Statically cache each translation to prevent multiple database lookups.
   $blocks = &backdrop_static(__FUNCTION__, array());
-  // if (isset($blocks[$delta][$langcode])) {
-    // return $blocks[$delta][$langcode];
+  // if (isset($blocks[$name][$langcode])) {
+    // return $blocks[$name][$langcode];
   // }
 
-  $block = config_get('block.mini_layouts.' . $delta);
+  $block = config_get('block.mini_layouts.' . $name);
   if (!$block) {
     return FALSE;
   }
@@ -210,8 +211,8 @@ function mini_layouts_custom_block_load($delta, $langcode = LANGUAGE_NONE) {
     unset($block['translations']);
   }
 
-  $blocks[$delta][$langcode] = $block;
-  return $blocks[$delta][$langcode];
+  $blocks[$name][$langcode] = $block;
+  return $blocks[$name][$langcode];
 }
 
 /**
@@ -230,7 +231,7 @@ function mini_layouts_custom_block_load($delta, $langcode = LANGUAGE_NONE) {
  */
 function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
   $edit += array(
-    'delta' => NULL,
+    'name' => NULL,
     'info' => '',
     'title' => '',
     'description' => '',
@@ -251,16 +252,16 @@ function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
     '#required' => TRUE,
     '#id' => 'block-info',
   );
-  $form['delta'] = array(
+  $form['name'] = array(
     '#type' => 'machine_name',
-    '#default_value' => $edit['delta'],
+    '#default_value' => $edit['name'],
     '#maxlength' => 128,
     '#machine_name' => array(
-      'exists' => 'mini_layouts_custom_block_load',
+      'exists' => 'mini_layouts_load',
       'source' => array('info'),
     ),
     '#description' => t('A unique machine-readable name for this Block. It must only contain lowercase letters, numbers, and underscores.'),
-    '#disabled' => isset($edit['delta']),
+    '#disabled' => isset($edit['name']),
   );
   $form['description'] = array(
     '#type' => 'textfield',
@@ -312,8 +313,8 @@ function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
     );
 
     $form['info']['#weight'] = 5;
-    $form['delta']['#weight'] = 6;
-    $form['delta']['#machine_name']['source'] = array('block_settings', 'info');
+    $form['name']['#weight'] = 6;
+    $form['name']['#machine_name']['source'] = array('block_settings', 'info');
     $form['description']['#weight'] = 7;
   }
 
@@ -325,7 +326,7 @@ function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
  *
  * @param array $edit
  *   Associative array of fields to save. Array keys:
- *   - delta: The machine name for the block
+ *   - name: The machine name for the block
  *   - info: The administrative title for the block.
  *   - description: The administrative description for the block.
  *   - title: The block title (optional, since layouts have their own title field)
@@ -335,19 +336,34 @@ function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
  *   - default_langcode: The source translation language code string.
  *   - langcode: If specified, the values for info, description, title, and
  *     body will be saved as a translation of the source language.
- * @param string|NULL $delta
+ * @param string|NULL $name
  *   Machine name of the block to save, comprised of lower-case letters,
  *   numbers, and underscores. Note: NULL values are still accepted when
  *   creating new nodes to maintain API contiguity.
  * @param $langcode
  *   The language code for the block. If set, only the translation is saved.
  */
-function mini_layouts_custom_block_save(array $edit, $delta = NULL, $langcode = NULL) {
-  $delta = $delta ? $delta : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
-  $block = mini_layouts_custom_block_load($delta);
+function mini_layouts_custom_block_save(array $edit, $name = NULL, $langcode = NULL) {
+  dpm($edit);
+  dpm($langcode);
+  $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
+  $block = mini_layouts_load($name);
+  $mini_layout = mini_layouts_load($name);
+
   if (!$block) {
     $block = array(
-      'delta' => $delta,
+      'name' => $name,
+      'info' => '',
+      'title' => '',
+      'description' => '',
+      'body' => array('value' => '', 'format' => ''),
+      'layout_template' => 'boxton',
+    );
+  }
+
+  if (!$mini_layout) {
+    $block = array(
+      'name' => $name,
       'info' => '',
       'title' => '',
       'description' => '',
@@ -378,26 +394,32 @@ function mini_layouts_custom_block_save(array $edit, $delta = NULL, $langcode = 
     }
   }
 
-dpm($block);
-  $config = config('block.mini_layouts.' . $delta);
-  $config->setData($block);
-  $config->save();
+  dpm($block);
+
+  $config = array();
+  $layout = new MiniLayout($block);
+  $layout->save();
+
+  // $config = config('block.mini_layouts.' . $name);
+  // $config->setData($block);
+  // $config->save();
 
   // Reset the static cache on the block list so this block is picked up.
+  cache()->delete('layout:mini_layouts:config');
   backdrop_static_reset('mini_layouts_block_info');
 }
 
 /**
  * Pass through to the layouts content editor.
  */
-function mini_layouts_edit_content($delta) {
-  dpm($delta);
-  $custom_block = mini_layouts_custom_block_load($delta);
+function mini_layouts_edit_content($name) {
+  dpm($name);
+  $custom_block = mini_layouts_load($name);
   // Load from database to tempstore as Layout pulls from tempstore to build
   // the content form and blocks etc.
-  if (!$display = layout_tempstore_load('mini-layouts-' . $delta)) {
+  if (!$display = layout_tempstore_load('mini-layouts-' . $name)) {
     $display = mini_layouts_layout_load($custom_block);
-    $display->name = 'mini-layouts-' . $delta;
+    $display->name = 'mini-layouts-' . $name;
 
     // Don't use layout_set_layout_tempstore(). It locks the layout.
     tempstore_set('layout.layout', $display->name, $display, 604800);
@@ -406,9 +428,15 @@ function mini_layouts_edit_content($delta) {
 
   $display->custom_block = $custom_block;
 
-  $display->setPath('custom_block/' . $delta);
+  $display->setPath('custom_block/' . $name);
   module_load_include('inc', 'layout', 'layout.admin');
   return backdrop_get_form('layout_content_form', $display);
+}
+
+function mini_layouts_load($name) {
+  $configs = layout_get_all_configs('mini_layouts');
+  return isset($configs[$name]) ? $configs[$name] : NULL;
+dpm($configs);
 }
 
 function mini_layouts_layout_load($custom_block) {
@@ -432,7 +460,7 @@ function mini_layouts_layout_load($custom_block) {
       'title_block' => NULL,
     );
   $layout->locked = FALSE;
-  $layout->setPath('custom_block/' . $custom_block['delta']);
+  $layout->setPath('custom_block/' . $custom_block['name']);
 
   // foreach ($blocks as $data) {
     // $block = unserialize($data->block_data);
@@ -441,5 +469,59 @@ function mini_layouts_layout_load($custom_block) {
   // }
 
   return $layout;
+}
+
+function mini_layouts_form_layout_content_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#layout']->module == 'mini_layouts') {
+    $form['actions']['submit']['#submit'] = array('mini_layouts_layout_content_form_submit');
+    $form['actions']['cancel']['#access'] = FALSE;
+  }
+}
+
+function mini_layouts_layout_content_form_submit(&$form, &$form_state) {
+  $layout = $form_state['layout'];
+  // Update the block positions based on the hidden position elements.
+  if (!empty($form_state['values']['content']['positions'])) {
+    foreach ($form_state['values']['content']['positions'] as $region_id => $blocks) {
+      if ($blocks) {
+        $uuids = array_filter(explode(',', $blocks));
+        foreach ($uuids as $block_index => $uuid) {
+          if (isset($layout->content[$uuid])) {
+            mini_layouts_save_block($layout, $region_id, $uuid, $block_index);
+          }
+        }
+      }
+    }
+  }
+
+  layout_clear_layout_tempstore('layout-node-' . $layout->node->nid);
+}
+
+function mini_layouts_save_block($layout, $region_id, $uuid, $block_index) {
+  $block = $layout->content[$uuid];
+
+  $data = array(
+    'nid' => $layout->node->nid,
+    'uuid' => $uuid,
+    'region_id' => $region_id,
+    'block_index' => $block_index,
+    'block_data' => $block,
+    );
+  $exists = db_query('SELECT count(uuid) FROM {layout_node_blocks} WHERE uuid = :uuid', array(':uuid' => $uuid))->fetchField();
+  if ($exists) {
+    backdrop_write_record('layout_node_blocks', $data, 'uuid');
+  }
+  else {
+    backdrop_write_record('layout_node_blocks', $data);
+  }
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function mini_layouts_autoload_info() {
+  return array(
+    'MiniLayout' => 'layout.mini_layouts.class.inc',
+  );
 }
 

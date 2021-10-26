@@ -17,26 +17,26 @@ function mini_layouts_admin_list() {
   );
 
   $rows = array();
-  foreach ($custom_blocks_info as $delta => $block_info) {
-    $block = mini_layouts_custom_block_load($delta);
+  foreach ($custom_blocks_info as $name => $block_info) {
+    $block = mini_layouts_load($name);
     $row = array();
     $row[] = theme('label_machine_name__block', array(
       'label' => $block_info['info'],
-      'machine_name' => $delta,
+      'machine_name' => $name,
     ));
     $row[] = filter_xss($block_info['description']);
     $links = array();
     $links['configure'] = array(
       'title' => t('Configure'),
-      'href' => 'admin/structure/mini-layouts/manage/' . $delta . '/configure',
+      'href' => 'admin/structure/mini-layouts/manage/' . $name . '/configure',
     );
     $links['delete'] = array(
       'title' => t('Delete'),
-      'href' => 'admin/structure/mini-layouts/manage/' . $delta . '/delete',
+      'href' => 'admin/structure/mini-layouts/manage/' . $name . '/delete',
     );
     $links['configure_blocks'] = array(
       'title' => t('Configure layout template'),
-      'href' => 'admin/structure/mini-layouts/manage/' . $delta . '/configure-layout-blocks',
+      'href' => 'admin/structure/mini-layouts/manage/' . $name . '/configure-layout-blocks',
     );
     if (user_access('synchronize configuration')) {
       $links['export'] = array(
@@ -44,7 +44,7 @@ function mini_layouts_admin_list() {
         'href' => 'admin/config/development/configuration/single/export',
         'query' => array(
           'group' => 'Custom Blocks',
-          'name' => 'block.mini_layouts.' . $delta,
+          'name' => 'block.mini_layouts.' . $name,
         ),
       );
     }
@@ -74,7 +74,7 @@ function mini_layouts_admin_list() {
  *   An associative array containing the structure of a portion of the form.
  * @param array $form_state
  *   A keyed array containing the current state of the form.
- * @param $delta
+ * @param $name
  *   Unique ID of the block within the context of $module.
  *
  * @see mini_layouts_menu()
@@ -82,10 +82,10 @@ function mini_layouts_admin_list() {
  * @see mini_layouts_admin_configure_submit()
  * @ingroup forms
  */
-function mini_layouts_admin_configure($form, &$form_state, $delta = NULL) {
-  if ($delta) {
+function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
+  if ($name) {
     $langcode = isset($form['langcode']) ? $form['langcode']['#value'] : NULL;
-    $custom_block = mini_layouts_custom_block_load($delta, $langcode);
+    $custom_block = mini_layouts_load($name);
     if ($langcode) {
       $custom_block['langcode'] = $langcode;
     }
@@ -134,11 +134,11 @@ function mini_layouts_admin_configure($form, &$form_state, $delta = NULL) {
     '#type' => 'submit',
     '#value' => t('Save block'),
   );
-  if ($delta) {
+  if ($name) {
     $form['actions']['delete'] = array(
       '#type' => 'link',
       '#title' => t('Delete'),
-      '#href' => 'admin/structure/mini-layouts/manage/' . $delta . '/delete',
+      '#href' => 'admin/structure/mini-layouts/manage/' . $name . '/delete',
       '#attributes' => array('class' => array('button', 'button-secondary', 'form-delete')),
     );
   }
@@ -166,8 +166,8 @@ function mini_layouts_admin_configure($form, &$form_state, $delta = NULL) {
  */
 function mini_layouts_admin_configure_validate($form, &$form_state) {
   $blocks = mini_layouts_block_info();
-  foreach ($blocks as $delta => $block) {
-    if ($delta != $form_state['values']['delta'] && $block['info'] == $form_state['values']['info']) {
+  foreach ($blocks as $name => $block) {
+    if ($name != $form_state['values']['name'] && $block['info'] == $form_state['values']['info']) {
       form_set_error('info', t('Ensure that each block description is unique.'));
       return;
     }
@@ -186,7 +186,7 @@ function mini_layouts_admin_configure_validate($form, &$form_state) {
  * @see mini_layouts_admin_configure_validate()
  */
 function mini_layouts_admin_configure_submit($form, &$form_state) {
-  mini_layouts_custom_block_save($form_state['values'], $form_state['values']['delta']);
+  mini_layouts_custom_block_save($form_state['values'], $form_state['values']['name']);
   backdrop_set_message(t('The block configuration has been saved.'));
   // $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
@@ -238,7 +238,7 @@ function mini_layouts_add_block_form_validate($form, &$form_state) {
  * @see mini_layouts_add_block_form_validate()
  */
 function mini_layouts_add_block_form_submit($form, &$form_state) {
-  mini_layouts_custom_block_save($form_state['values'], $form_state['values']['delta']);
+  mini_layouts_custom_block_save($form_state['values'], $form_state['values']['name']);
   backdrop_set_message(t('The block has been created.'));
   $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
@@ -250,16 +250,16 @@ function mini_layouts_add_block_form_submit($form, &$form_state) {
  *   An associative array containing the structure of a portion of the form.
  * @param array $form_state
  *   A keyed array containing the current state of the form.
- * @param $delta
+ * @param $name
  *   The unique ID of the block within the context of $module.
  *
  * @see mini_layouts_menu()
  * @see mini_layouts_custom_block_delete_submit()
  */
-function mini_layouts_custom_block_delete($form, &$form_state, $delta) {
-  $custom_block = mini_layouts_custom_block_load($delta);
+function mini_layouts_custom_block_delete($form, &$form_state, $name) {
+  $custom_block = mini_layouts_load($name);
   $form['info'] = array('#type' => 'hidden', '#value' => $custom_block['info']);
-  $form['delta'] = array('#type' => 'hidden', '#value' => $delta);
+  $form['name'] = array('#type' => 'hidden', '#value' => $name);
 
   return confirm_form($form, t('Are you sure you want to delete the block %name?', array('%name' => $custom_block['info'])), 'admin/structure/mini-layouts', '', t('Delete'), t('Cancel'));
 }
@@ -275,7 +275,7 @@ function mini_layouts_custom_block_delete($form, &$form_state, $delta) {
  * @see mini_layouts_custom_block_delete()
  */
 function mini_layouts_custom_block_delete_submit($form, &$form_state) {
-  config('block.mini_layouts.' . $form_state['values']['delta'])->delete();
+  config('block.mini_layouts.' . $form_state['values']['name'])->delete();
   backdrop_set_message(t('The block %name has been removed.', array('%name' => $form_state['values']['info'])));
   $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
