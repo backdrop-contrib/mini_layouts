@@ -186,7 +186,7 @@ function mini_layouts_admin_configure_validate($form, &$form_state) {
  * @see mini_layouts_admin_configure_validate()
  */
 function mini_layouts_admin_configure_submit($form, &$form_state) {
-  mini_layouts_block_save($form_state['values'], $form_state['values']['name']);
+  mini_layouts_block_layout_save($form_state['values'], $form_state['values']['name']);
   backdrop_set_message(t('The block configuration has been saved.'));
   // $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
@@ -238,7 +238,7 @@ function mini_layouts_add_block_form_validate($form, &$form_state) {
  * @see mini_layouts_add_block_form_validate()
  */
 function mini_layouts_add_block_form_submit($form, &$form_state) {
-  mini_layouts_block_save($form_state['values'], $form_state['values']['name']);
+  mini_layouts_block_layout_save($form_state['values'], $form_state['values']['name']);
   backdrop_set_message(t('The block has been created.'));
   $form_state['redirect'] = 'admin/structure/mini-layouts';
 }

@@ -93,7 +93,6 @@ function mini_layouts_config_info() {
  */
 function mini_layouts_block_info() {
   global $language;
-  $langcode = $language->langcode;
 
   // Statically cache to prevent multiple database lookups.
   $blocks = &backdrop_static(__FUNCTION__);
@@ -110,11 +109,6 @@ function mini_layouts_block_info() {
     $block_info['info'] = $block['info'];
     $block_info['description'] = !empty($block['description']) ? $block['description'] : NULL;
 
-    // If this block has been translated, return the translated information.
-    if (isset($block['translations'][$langcode])) {
-      $block_info['info'] = $block['translations'][$langcode]['info'];
-      $block_info['description'] = $block['translations'][$langcode]['description'];
-    }
     // If no description was entered, use a generic one.
     if (empty($block_info['description'])) {
       $block_info['description'] = t('A reusable mini layouts block.');
@@ -143,7 +137,7 @@ function mini_layouts_block_configure($name, $settings = array()) {
  * Implements hook_block_save().
  */
 function mini_layouts_block_save($name, &$edit = array()) {
-  mini_layouts_block_save($edit, $name);
+  mini_layouts_block_layout_save($edit, $name);
 }
 
 /**
@@ -200,7 +194,7 @@ function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
     'title' => '',
     'description' => '',
     'body' => array('value' => '', 'format' => NULL),
-    'default_langcode' => LANGUAGE_NONE,
+    'layout_template' => 'boxton',
   );
   // If the description is the default from hook_block_info(), leave blank.
   if ($edit['description'] === t('A reusable mini layouts block.')) {
@@ -294,19 +288,12 @@ function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
  *   - info: The administrative title for the block.
  *   - description: The administrative description for the block.
  *   - title: The block title (optional, since layouts have their own title field)
- *   - body: Associative array of body value and format. Array keys:
- *     - value: Block contents.
- *     - format: Filter ID of the filter format for the body.
- *   - default_langcode: The source translation language code string.
- *   - langcode: If specified, the values for info, description, title, and
- *     body will be saved as a translation of the source language.
+ *   - layout_template: The template used by this mini layout.
  * @param string|NULL $name
  *   Machine name of the block to save, comprised of lower-case letters,
  *   numbers, and underscores.
- * @param $langcode
- *   The language code for the block. If set, only the translation is saved.
  */
-function mini_layouts_block_save(array $edit, $name = NULL, $langcode = NULL) {
+function mini_layouts_block_layout_save(array $edit, $name = NULL) {
   $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
   $block = mini_layouts_load($name);
 
@@ -316,40 +303,19 @@ function mini_layouts_block_save(array $edit, $name = NULL, $langcode = NULL) {
       'info' => '',
       'title' => '',
       'description' => '',
-      'body' => array('value' => '', 'format' => ''),
       'layout_template' => 'boxton',
     );
   }
 
-  // If langcode is NULL or the default (source) language code, save into the
-  // main configuration array.
-  if ($langcode === NULL || $langcode === $block['default_langcode']) {
-    // Clean up any copies of the translation, in the event the source had
-    // changed.
-    if ($langcode && isset($block['translations'][$langcode])) {
-      unset($block['translations'][$langcode]);
-    }
-    // Store the main block configuration.
-    foreach (array('info', 'description', 'title', 'body', 'default_langcode') as $key) {
-      if (isset($edit[$key])) {
-        $block[$key] = $edit[$key];
-      }
-    }
-  }
-  // Store the translation values.
-  elseif ($langcode) {
-    foreach (array('info', 'description', 'title', 'body') as $key) {
-      $block['translations'][$langcode][$key] = $edit[$key];
+  foreach (array('info', 'description', 'title', 'body', 'layout_template') as $key) {
+    if (isset($edit[$key])) {
+      $block[$key] = $edit[$key];
     }
   }
 
   $config = array();
   $layout = new MiniLayout($block);
   $layout->save();
-
-  // $config = config('block.mini_layouts.' . $name);
-  // $config->setData($block);
-  // $config->save();
 
   // Reset the static cache on the block list so this block is picked up.
   cache()->delete('layout:mini_layouts:config');
