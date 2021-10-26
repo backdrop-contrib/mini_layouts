@@ -43,7 +43,6 @@ class MiniLayout extends Layout {
     if (empty($this->contexts)) {
       $this->contexts = array();
     }
-    dpm($this);
   }
 
   /**

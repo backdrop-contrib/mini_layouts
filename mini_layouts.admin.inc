@@ -103,7 +103,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
       'layout_template' => 'boxton',
     );
   }
-    dpm($custom_block);
+
   if ($custom_block['info']) {
     backdrop_set_title(t("'%name' block", array('%name' => $custom_block['info'])), PASS_THROUGH);
   }

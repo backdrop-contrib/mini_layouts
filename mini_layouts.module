@@ -70,6 +70,12 @@ function mini_layouts_menu() {
   return $items;
 }
 
+function mini_layouts_load($name) {
+  // @todo: always return a MiniLayout object
+  $configs = layout_get_all_configs('mini_layouts');
+  return isset($configs[$name]) ? $configs[$name] : NULL;
+}
+
 /**
  * Implements hook_config_info().
  */
@@ -97,7 +103,7 @@ function mini_layouts_block_info() {
 
   $blocks = array();
   $config_names = layout_get_all_configs('mini_layouts');
-  dpm($config_names);
+
   foreach ($config_names as $block) {
     // $block = config_get($config_name);
     $block_info = array();
@@ -137,13 +143,8 @@ function mini_layouts_block_configure($name, $settings = array()) {
  * Implements hook_block_save().
  */
 function mini_layouts_block_save($name, &$edit = array()) {
-/*   mini_layouts_custom_block_save($edit, $name);
-
-  // Remove values from edit to prevent them from being saved in layout config.
-  unset($edit['info']);
-  unset($edit['title']);
-  unset($edit['body']);
- */}
+  mini_layouts_custom_block_save($edit, $name);
+}
 
 /**
  * Implements hook_block_view().
@@ -156,63 +157,28 @@ function mini_layouts_block_view($name = '') {
   if (!$block) {
     return array();
   }
-  $data['subject'] = strlen($block['title']) ? check_plain($block['title']) : NULL;
-  $data['content'] = check_markup($block['body']['value'], $block['body']['format'], '', TRUE);
-  return $data;
-}
+  $layout = new MiniLayout($block);
 
-/**
- * Returns information from configuration about a user-created (custom) block.
- *
- * @param $name
- *   ID of the block to get information for.
- * @param $langcode
- *   The language code for loading the block.
- *
- * @return array
- *   Associative array of information stored in configuration for this block, or FALSE if it doesn't exist
- *   Array keys:
- *   - name: Block ID.
- *   - info: Block description.
- *   - body: Block contents.
- *   - format: Filter ID of the filter format for the body.
- */
-function mini_layouts_load_orig($name, $langcode = LANGUAGE_NONE) {
-  // Statically cache each translation to prevent multiple database lookups.
-  $blocks = &backdrop_static(__FUNCTION__, array());
-  // if (isset($blocks[$name][$langcode])) {
-    // return $blocks[$name][$langcode];
-  // }
+  static $rendering = array();
 
-  $block = config_get('block.mini_layouts.' . $name);
-  if (!$block) {
-    return FALSE;
+  // Prevent loops if someone foolishly puts the block inside itself:
+  if (!empty($rendering[$name])) {
+    return;
   }
 
-  // Ensure all expected keys are present.
-  $block += array(
-    'info' => '',
-    'title' => '',
-    'body' => '',
-    'description' => '',
-    'default_langcode' => LANGUAGE_NONE,
+  $rendering[$name] = TRUE;
+
+  $renderer = layout_create_renderer('standard', $layout);
+
+  unset($rendering[$name]);
+
+  $data['subject'] = strlen($block['title']) ? check_plain($block['title']) : NULL;
+  $data['content'] = array(
+    '#markup' => $renderer->render(),
+    '#weight' => 0,
   );
 
-  // If a translation is available, load it in to the main values.
-  if ($langcode !== LANGUAGE_NONE && $langcode !== $block['default_langcode'] && isset($block['translations'])) {
-    $block['langcode'] = $langcode;
-    foreach (array('info', 'description', 'title', 'body') as $key) {
-      if (isset($block['translations'][$langcode][$key])) {
-        $block[$key] = $block['translations'][$langcode][$key];
-      }
-    }
-    // Remove the translations from this copy to save on load bloat. Only the
-    // source or non-translated load included all translations.
-    unset($block['translations']);
-  }
-
-  $blocks[$name][$langcode] = $block;
-  return $blocks[$name][$langcode];
+  return $data;
 }
 
 /**
@@ -344,8 +310,6 @@ function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
  *   The language code for the block. If set, only the translation is saved.
  */
 function mini_layouts_custom_block_save(array $edit, $name = NULL, $langcode = NULL) {
-  dpm($edit);
-  dpm($langcode);
   $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
   $block = mini_layouts_load($name);
   $mini_layout = mini_layouts_load($name);
@@ -394,8 +358,6 @@ function mini_layouts_custom_block_save(array $edit, $name = NULL, $langcode = N
     }
   }
 
-  dpm($block);
-
   $config = array();
   $layout = new MiniLayout($block);
   $layout->save();
@@ -418,7 +380,6 @@ function mini_layouts_edit_content($name) {
   if (!$layout = layout_tempstore_load($name)) {
     $config = mini_layouts_load($name);
     $layout = new MiniLayout($config);
-dpm($layout);
 
     // Don't use layout_set_layout_tempstore(). It locks the layout.
     tempstore_set('layout.layout', $layout->name, $layout, 604800);
@@ -428,12 +389,6 @@ dpm($layout);
   $layout->setPath('custom_block/' . $name);
   module_load_include('inc', 'layout', 'layout.admin');
   return backdrop_get_form('layout_content_form', $layout);
-}
-
-function mini_layouts_load($name) {
-  // @todo: always return a MiniLayout object
-  $configs = layout_get_all_configs('mini_layouts');
-  return isset($configs[$name]) ? $configs[$name] : NULL;
 }
 
 function mini_layouts_form_layout_content_form_alter(&$form, &$form_state, $form_id) {
@@ -449,7 +404,6 @@ function mini_layouts_layout_content_form_submit(&$form, &$form_state) {
   layout_clear_layout_tempstore($form_state['layout']->name);
   cache()->delete('layout:mini_layouts:config');
   backdrop_static_reset('mini_layouts_block_info');
-  dpm($form_state['layout']);
 }
 
 function mini_layouts_save_block($layout, $region_id, $uuid, $block_index) {
