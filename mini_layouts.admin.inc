@@ -84,11 +84,7 @@ function mini_layouts_admin_list() {
  */
 function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   if ($name) {
-    $langcode = isset($form['langcode']) ? $form['langcode']['#value'] : NULL;
     $mini_layouts_block = mini_layouts_load($name);
-    if ($langcode) {
-      $mini_layouts_block['langcode'] = $langcode;
-    }
 
     if (!$mini_layouts_block) {
       backdrop_not_found();
