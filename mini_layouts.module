@@ -346,8 +346,19 @@ function mini_layouts_form_layout_content_form_alter(&$form, &$form_state, $form
   form_load_include($form_state, 'inc', 'layout', 'layout.admin');
   if ($form['#layout']->module == 'mini_layouts') {
     $form['actions']['submit']['#submit'] = array('mini_layouts_layout_content_form_submit');
-    $form['actions']['cancel']['#access'] = FALSE;
+    $form['actions']['cancel']['#submit'] = array('mini_layouts_layout_settings_form_reset');
   }
+}
+
+/**
+ * Submit handler for layout_settings_form() that resets in-progress changes.
+ */
+function mini_layouts_layout_settings_form_reset($form, &$form_state) {
+  /* @var Layout $layout */
+  $layout = $form_state['layout'];
+  layout_clear_layout_tempstore($layout->name);
+  backdrop_set_message(t('Layout changes discarded.'));
+  $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
 
 function mini_layouts_layout_content_form_submit(&$form, &$form_state) {
