@@ -35,7 +35,7 @@ function mini_layouts_admin_list() {
       'href' => 'admin/structure/mini-layouts/manage/' . $name . '/delete',
     );
     $links['configure_blocks'] = array(
-      'title' => t('Configure layout template'),
+      'title' => t('Manage blocks'),
       'href' => 'admin/structure/mini-layouts/manage/' . $name . '/configure-layout-blocks',
     );
     if (user_access('synchronize configuration')) {
