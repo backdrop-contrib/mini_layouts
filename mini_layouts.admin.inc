@@ -5,10 +5,10 @@
  */
 
 /**
- * Page callback; Display a list of all custom blocks.
+ * Page callback; Display a list of all mini layout blocks.
  */
 function mini_layouts_admin_list() {
-  $custom_blocks_info = mini_layouts_block_info();
+  $mini_layouts_block_info = mini_layouts_block_info();
 
   $header = array(
     t('Block'),
@@ -17,7 +17,7 @@ function mini_layouts_admin_list() {
   );
 
   $rows = array();
-  foreach ($custom_blocks_info as $name => $block_info) {
+  foreach ($mini_layouts_block_info as $name => $block_info) {
     $block = mini_layouts_load($name);
     $row = array();
     $row[] = theme('label_machine_name__block', array(
@@ -43,7 +43,7 @@ function mini_layouts_admin_list() {
         'title' => t('Export'),
         'href' => 'admin/config/development/configuration/single/export',
         'query' => array(
-          'group' => 'Custom Blocks',
+          'group' => 'Mini Layouts Blocks',
           'name' => 'block.mini_layouts.' . $name,
         ),
       );
@@ -61,14 +61,14 @@ function mini_layouts_admin_list() {
     '#theme' => 'table__mini_layouts_admin_list',
     '#rows' => $rows,
     '#header' => $header,
-    '#empty' => t('No custom blocks have been created yet.'),
+    '#empty' => t('No mini layouts blocks have been created yet.'),
   );
 }
 
 /**
  * Form constructor for the block configuration form.
  *
- * Also used by mini_layouts_add_block_form() for adding a new custom block.
+ * Also used by mini_layouts_add_block_form() for adding a new mini layouts block.
  *
  * @param array $form
  *   An associative array containing the structure of a portion of the form.
@@ -85,18 +85,18 @@ function mini_layouts_admin_list() {
 function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   if ($name) {
     $langcode = isset($form['langcode']) ? $form['langcode']['#value'] : NULL;
-    $custom_block = mini_layouts_load($name);
+    $mini_layouts_block = mini_layouts_load($name);
     if ($langcode) {
-      $custom_block['langcode'] = $langcode;
+      $mini_layouts_block['langcode'] = $langcode;
     }
 
-    if (!$custom_block) {
+    if (!$mini_layouts_block) {
       backdrop_not_found();
       exit();
     }
   }
   else {
-    $custom_block = array(
+    $mini_layouts_block = array(
       'info' => '',
       'title' => '',
       'body' => array('value' => '', 'format' => NULL),
@@ -104,15 +104,15 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     );
   }
 
-  if ($custom_block['info']) {
-    backdrop_set_title(t("'%name' block", array('%name' => $custom_block['info'])), PASS_THROUGH);
+  if ($mini_layouts_block['info']) {
+    backdrop_set_title(t("'%name' block", array('%name' => $mini_layouts_block['info'])), PASS_THROUGH);
   }
   else {
-    backdrop_set_title(t('Add custom block'));
+    backdrop_set_title(t('Add mini layouts block'));
   }
 
   // Call our own block configuration form (also used by Layout module).
-  $form += mini_layouts_custom_block_form($custom_block, TRUE);
+  $form += mini_layouts_block_form($mini_layouts_block, TRUE);
 
   // Prepare cancel link.
   if (isset($_GET['destination'])) {
@@ -186,7 +186,7 @@ function mini_layouts_admin_configure_validate($form, &$form_state) {
  * @see mini_layouts_admin_configure_validate()
  */
 function mini_layouts_admin_configure_submit($form, &$form_state) {
-  mini_layouts_custom_block_save($form_state['values'], $form_state['values']['name']);
+  mini_layouts_block_save($form_state['values'], $form_state['values']['name']);
   backdrop_set_message(t('The block configuration has been saved.'));
   // $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
@@ -232,19 +232,19 @@ function mini_layouts_add_block_form_validate($form, &$form_state) {
  * @param array $form_state
  *   A keyed array containing the current state of the form.
  *
- * Saves the new custom block.
+ * Saves the new mini layouts block.
  *
  * @see mini_layouts_add_block_form()
  * @see mini_layouts_add_block_form_validate()
  */
 function mini_layouts_add_block_form_submit($form, &$form_state) {
-  mini_layouts_custom_block_save($form_state['values'], $form_state['values']['name']);
+  mini_layouts_block_save($form_state['values'], $form_state['values']['name']);
   backdrop_set_message(t('The block has been created.'));
   $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
 
 /**
- * Form constructor for the custom block deletion form.
+ * Form constructor for the mini layouts block deletion form.
  *
  * @param array $form
  *   An associative array containing the structure of a portion of the form.
@@ -254,27 +254,27 @@ function mini_layouts_add_block_form_submit($form, &$form_state) {
  *   The unique ID of the block within the context of $module.
  *
  * @see mini_layouts_menu()
- * @see mini_layouts_custom_block_delete_submit()
+ * @see mini_layouts_block_delete_submit()
  */
-function mini_layouts_custom_block_delete($form, &$form_state, $name) {
-  $custom_block = mini_layouts_load($name);
-  $form['info'] = array('#type' => 'hidden', '#value' => $custom_block['info']);
+function mini_layouts_block_delete($form, &$form_state, $name) {
+  $mini_layouts_block = mini_layouts_load($name);
+  $form['info'] = array('#type' => 'hidden', '#value' => $mini_layouts_block['info']);
   $form['name'] = array('#type' => 'hidden', '#value' => $name);
 
-  return confirm_form($form, t('Are you sure you want to delete the block %name?', array('%name' => $custom_block['info'])), 'admin/structure/mini-layouts', '', t('Delete'), t('Cancel'));
+  return confirm_form($form, t('Are you sure you want to delete the block %name?', array('%name' => $mini_layouts_block['info'])), 'admin/structure/mini-layouts', '', t('Delete'), t('Cancel'));
 }
 
 /**
- * Form submission handler for mini_layouts_custom_block_delete().
+ * Form submission handler for mini_layouts_block_delete().
  *
  * @param array $form
  *   An associative array containing the structure of a portion of the form.
  * @param array $form_state
  *   A keyed array containing the current state of the form.
  *
- * @see mini_layouts_custom_block_delete()
+ * @see mini_layouts_block_delete()
  */
-function mini_layouts_custom_block_delete_submit($form, &$form_state) {
+function mini_layouts_block_delete_submit($form, &$form_state) {
   config('block.mini_layouts.' . $form_state['values']['name'])->delete();
   backdrop_set_message(t('The block %name has been removed.', array('%name' => $form_state['values']['info'])));
   $form_state['redirect'] = 'admin/structure/mini-layouts';

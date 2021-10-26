@@ -5,7 +5,7 @@
  * Tests for block.module.
  */
 
-class BlockTestCase extends BackdropWebTestCase {
+class MiniLayoutsBlockTestCase extends BackdropWebTestCase {
   protected $admin_user;
 
   function setUp() {
@@ -24,12 +24,12 @@ class BlockTestCase extends BackdropWebTestCase {
   }
 
   /**
-   * Test creating custom block, editing, and then deleting it.
+   * Test creating mini layouts block, editing, and then deleting it.
    */
-  function testCustomBlock() {
+  function testMinilayoutsBlock() {
     // Confirm that the add block link appears on block overview pages.
     $this->backdropGet('admin/structure/block');
-    $this->assertRaw(l('Add custom block', 'admin/structure/block/add'), 'Add block link is present on block overview page for default theme.');
+    $this->assertRaw(l('Add mini layouts block', 'admin/structure/block/add'), 'Add block link is present on block overview page for default theme.');
 
     // Save a file to test file usage saving.
     $files = $this->backdropGetTestFiles('image');
@@ -43,27 +43,27 @@ class BlockTestCase extends BackdropWebTestCase {
     // Load the form and check that file uploads are enabled on the body field.
     $this->backdropGet('admin/structure/block/add');
     $element = $this->xpath('//textarea[@name="body[value]"][@data-editor-uploads="true"]');
-    $this->assertEqual(count($element), 1, 'Editor upload attribute found on the body field for a custom block.');
+    $this->assertEqual(count($element), 1, 'Editor upload attribute found on the body field for a mini layouts block.');
 
-    // Add a new custom block by filling out the input form on the admin/structure/block/add page.
-    $custom_block = array();
-    $custom_block['info'] = $this->randomName(8);
-    $custom_block['delta'] = strtolower($this->randomName(8));
-    $custom_block['title'] = $this->randomName(8);
-    $custom_block['body[value]'] = $this->randomName(32) . $image_string;
-    $this->backdropPost(NULL, $custom_block, 'Save block');
+    // Add a new mini layouts block by filling out the input form on the admin/structure/block/add page.
+    $mini_layouts_block = array();
+    $mini_layouts_block['info'] = $this->randomName(8);
+    $mini_layouts_block['delta'] = strtolower($this->randomName(8));
+    $mini_layouts_block['title'] = $this->randomName(8);
+    $mini_layouts_block['body[value]'] = $this->randomName(32) . $image_string;
+    $this->backdropPost(NULL, $mini_layouts_block, 'Save block');
 
-    // Confirm that the custom block has been created, and then find its config file
-    $this->assertText(t('The block has been created.'), 'Custom block successfully created.');
+    // Confirm that the mini layouts block has been created, and then find its config file
+    $this->assertText(t('The block has been created.'), 'Mini layouts block successfully created.');
 
-    // Check to see if the custom block was created by checking that it has a configuration file.
-    $custom_block = config_get('block.custom.'.$custom_block['delta']);
-    $this->assertNotNull($custom_block['delta'], 'Custom block found in configuration.');
+    // Check to see if the mini layouts block was created by checking that it has a configuration file.
+    $mini_layouts_block = config_get('block.mini layouts.'.$mini_layouts_block['delta']);
+    $this->assertNotNull($mini_layouts_block['delta'], 'Mini layouts block found in configuration.');
 
     // Check that block_block_view() returns the correct title and content.
-    $data = block_block_view($custom_block['delta']);
-    $this->assertEqual($data['subject'], $custom_block['title'], 'block_block_view() provides the correct block title.');
-    $this->assertEqual(check_markup($custom_block['body']['value'], $custom_block['body']['format']), $data['content'], 'block_block_view() provides correct block content.');
+    $data = block_block_view($mini_layouts_block['delta']);
+    $this->assertEqual($data['subject'], $mini_layouts_block['title'], 'block_block_view() provides the correct block title.');
+    $this->assertEqual(check_markup($mini_layouts_block['body']['value'], $mini_layouts_block['body']['format']), $data['content'], 'block_block_view() provides correct block content.');
 
     // Check that a file usage was recorded for the file within the block.
     $file = file_load($file->fid);
@@ -73,61 +73,61 @@ class BlockTestCase extends BackdropWebTestCase {
 
     // Check whether the block can be moved to all available regions.
     $layout = layout_load('default');
-    $layout->addBlock('block', $custom_block['delta'], 'sidebar');
+    $layout->addBlock('block', $mini_layouts_block['delta'], 'sidebar');
     $layout->save();
     $this->backdropGet('user');
     $this->assertText($data['subject'], 'Newly added block found.');
 
-    // Verify presence of configure and delete links for custom block.
+    // Verify presence of configure and delete links for mini layouts block.
     $this->backdropGet('admin/structure/block');
-    $this->assertLinkByHref('admin/structure/block/manage/' . $custom_block['delta'] . '/configure', 0, 'Custom block configure link found.');
-    $this->assertLinkByHref('admin/structure/block/manage/' . $custom_block['delta'] . '/delete', 0, 'Custom block delete link found.');
+    $this->assertLinkByHref('admin/structure/block/manage/' . $mini_layouts_block['delta'] . '/configure', 0, 'Mini layouts block configure link found.');
+    $this->assertLinkByHref('admin/structure/block/manage/' . $mini_layouts_block['delta'] . '/delete', 0, 'Mini layouts block delete link found.');
 
-    // Delete the created custom block & verify that it's been deleted and no longer appearing on the page.
+    // Delete the created mini layouts block & verify that it's been deleted and no longer appearing on the page.
     $this->clickLink(t('Delete'));
-    $this->backdropPost('admin/structure/block/manage/' . $custom_block['delta'] . '/delete', array(), 'Delete');
-    $this->assertRaw(t('The block %title has been removed.', array('%title' => $custom_block['info'])), 'Custom block successfully deleted.');
-    $this->assertNoText(t($custom_block['title']), 'Custom block no longer appears on page.');
+    $this->backdropPost('admin/structure/block/manage/' . $mini_layouts_block['delta'] . '/delete', array(), 'Delete');
+    $this->assertRaw(t('The block %title has been removed.', array('%title' => $mini_layouts_block['info'])), 'Mini layouts block successfully deleted.');
+    $this->assertNoText(t($mini_layouts_block['title']), 'Mini layouts block no longer appears on page.');
 
     // Note that file usages are NOT removed after a block has been deleted.
     // See https://github.com/backdrop/backdrop-issues/issues/2137.
   }
 
   /**
-   * Test creating custom block using Raw HTML (full_html).
+   * Test creating mini layouts block using Raw HTML (full_html).
    */
-  function testCustomBlockFormat() {
-    // Add a new custom block by filling out the input form on the admin/structure/block/add page.
-    $custom_block = array();
-    $custom_block['info'] = $this->randomName(8);
-    $custom_block['delta'] = strtolower($this->randomName(8));
-    $custom_block['title'] = $this->randomName(8);
-    $custom_block['body[value]'] = '<h1>Raw HTML</h1>';
+  function testMinilayoutsBlockFormat() {
+    // Add a new mini layouts block by filling out the input form on the admin/structure/block/add page.
+    $mini_layouts_block = array();
+    $mini_layouts_block['info'] = $this->randomName(8);
+    $mini_layouts_block['delta'] = strtolower($this->randomName(8));
+    $mini_layouts_block['title'] = $this->randomName(8);
+    $mini_layouts_block['body[value]'] = '<h1>Raw HTML</h1>';
     $full_html_format = filter_format_load('full_html');
-    $custom_block['body[format]'] = $full_html_format->format;
-    $this->backdropPost('admin/structure/block/add', $custom_block, 'Save block');
+    $mini_layouts_block['body[format]'] = $full_html_format->format;
+    $this->backdropPost('admin/structure/block/add', $mini_layouts_block, 'Save block');
 
-    // Set the created custom block to a specific region.
+    // Set the created mini layouts block to a specific region.
     $layout = layout_load('default');
-    $layout->addBlock('block', $custom_block['delta'], 'content');
+    $layout->addBlock('block', $mini_layouts_block['delta'], 'content');
     $layout->save();
 
-    // Confirm that the custom block is being displayed using configured text format.
+    // Confirm that the mini layouts block is being displayed using configured text format.
     $this->backdropGet('user');
-    $this->assertRaw('<h1>Raw HTML</h1>', 'Custom block successfully being displayed using Raw HTML.');
+    $this->assertRaw('<h1>Raw HTML</h1>', 'Mini layouts block successfully being displayed using Raw HTML.');
 
     // Confirm that a user without access to Raw HTML (full_html) can not see
     // the body field, but can still submit the form without errors.
     $block_admin = $this->backdropCreateUser(array('administer blocks'));
     $this->backdropLogin($block_admin);
-    $this->backdropGet('admin/structure/block/manage/' . $custom_block['delta'] . '/configure');
+    $this->backdropGet('admin/structure/block/manage/' . $mini_layouts_block['delta'] . '/configure');
     $this->assertFieldByXPath("//textarea[@name='body[value]' and @disabled='disabled']", 'This field has been disabled because you do not have sufficient permissions to edit it.', 'Body field contains denied message');
-    $this->backdropPost('admin/structure/block/manage/' . $custom_block['delta'] . '/configure', array(), 'Save block');
+    $this->backdropPost('admin/structure/block/manage/' . $mini_layouts_block['delta'] . '/configure', array(), 'Save block');
     $this->assertNoText(t('Ensure that each block description is unique.'));
 
-    // Confirm that the custom block is still being displayed using configured text format.
+    // Confirm that the mini layouts block is still being displayed using configured text format.
     $this->backdropGet('user');
-    $this->assertRaw('<h1>Raw HTML</h1>', 'Custom block successfully being displayed using Raw HTML.');
+    $this->assertRaw('<h1>Raw HTML</h1>', 'Mini layouts block successfully being displayed using Raw HTML.');
   }
 
   /**

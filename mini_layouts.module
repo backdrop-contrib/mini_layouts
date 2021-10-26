@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Provides the ability to create reusable custom blocks.
+ * Provides the ability to create mini layouts blocks.
  */
 
 /**
@@ -9,7 +9,7 @@
  */
 function mini_layouts_permission() {
   $permissions['administer blocks'] = array(
-    'title' => t('Administer custom blocks'),
+    'title' => t('Administer mini layouts blocks'),
   );
   return $permissions;
 }
@@ -44,7 +44,7 @@ function mini_layouts_menu() {
   $items['admin/structure/mini-layouts/manage/%/delete'] = array(
     'title' => 'Delete mini layouts',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('mini_layouts_custom_block_delete', 4),
+    'page arguments' => array('mini_layouts_block_delete', 4),
     'access arguments' => array('administer blocks'),
     'type' => MENU_CALLBACK,
     'context' => MENU_CONTEXT_NONE,
@@ -80,10 +80,10 @@ function mini_layouts_load($name) {
  * Implements hook_config_info().
  */
 function mini_layouts_config_info() {
-  $prefixes['block.mini_layouts'] = array(
+  $prefixes['layout.mini_layouts'] = array(
     'name_key' => 'name',
     'label_key' => 'info',
-    'group' => t('Custom Blocks'),
+    'group' => t('Mini layouts Blocks'),
   );
   return $prefixes;
 }
@@ -117,7 +117,7 @@ function mini_layouts_block_info() {
     }
     // If no description was entered, use a generic one.
     if (empty($block_info['description'])) {
-      $block_info['description'] = t('A reusable custom block.');
+      $block_info['description'] = t('A reusable mini layouts block.');
     }
     $blocks[$block['name']] = $block_info;
   }
@@ -130,20 +130,20 @@ function mini_layouts_block_info() {
  */
 function mini_layouts_block_configure($name, $settings = array()) {
   if ($name) {
-    $custom_block = mini_layouts_load($name);
-    $custom_block['name'] = $name;
+    $mini_layouts_block = mini_layouts_load($name);
+    $mini_layouts_block['name'] = $name;
   }
   else {
-    $custom_block = array();
+    $mini_layouts_block = array();
   }
-  return mini_layouts_custom_block_form($custom_block, FALSE);
+  return mini_layouts_block_form($mini_layouts_block, FALSE);
 }
 
 /**
  * Implements hook_block_save().
  */
 function mini_layouts_block_save($name, &$edit = array()) {
-  mini_layouts_custom_block_save($edit, $name);
+  mini_layouts_block_save($edit, $name);
 }
 
 /**
@@ -182,12 +182,10 @@ function mini_layouts_block_view($name = '') {
 }
 
 /**
- * Form constructor for the custom block form.
+ * Form constructor for the mini layouts block form.
  *
  * @param $edit
- *   (optional) An associative array of information retrieved by
- *   mini_layouts_custom_get_block() if an existing block is being edited, or an empty
- *   array otherwise. Defaults to array().
+ *   (optional) An associative array of information. Defaults to array().
  * @param $stand_alone
  *   (optional) Set to FALSE if this form is used when displaying as part of a
  *   form within the Layout UI. The default value of TRUE should be used if this
@@ -195,7 +193,7 @@ function mini_layouts_block_view($name = '') {
  *
  * @ingroup forms
  */
-function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
+function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
   $edit += array(
     'name' => NULL,
     'info' => '',
@@ -205,7 +203,7 @@ function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
     'default_langcode' => LANGUAGE_NONE,
   );
   // If the description is the default from hook_block_info(), leave blank.
-  if ($edit['description'] === t('A reusable custom block.')) {
+  if ($edit['description'] === t('A reusable mini layouts block.')) {
     $edit['description'] = '';
   }
 
@@ -309,7 +307,7 @@ function mini_layouts_custom_block_form($edit = array(), $stand_alone = TRUE) {
  * @param $langcode
  *   The language code for the block. If set, only the translation is saved.
  */
-function mini_layouts_custom_block_save(array $edit, $name = NULL, $langcode = NULL) {
+function mini_layouts_block_save(array $edit, $name = NULL, $langcode = NULL) {
   $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
   $block = mini_layouts_load($name);
   $mini_layout = mini_layouts_load($name);
@@ -386,7 +384,7 @@ function mini_layouts_edit_content($name) {
     $layout->locked = FALSE;
   }
 
-  $layout->setPath('custom_block/' . $name);
+  $layout->setPath('mini_layouts_block/' . $name);
   module_load_include('inc', 'layout', 'layout.admin');
   return backdrop_get_form('layout_content_form', $layout);
 }
