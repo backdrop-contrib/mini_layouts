@@ -26,6 +26,10 @@ function mini_layouts_admin_list() {
     ));
     $row[] = filter_xss($block_info['description']);
     $links = array();
+    $links['configure_blocks'] = array(
+      'title' => t('Manage blocks'),
+      'href' => 'admin/structure/mini-layouts/manage/' . $name . '/configure-layout-blocks',
+    );
     $links['configure'] = array(
       'title' => t('Configure'),
       'href' => 'admin/structure/mini-layouts/manage/' . $name . '/configure',
@@ -33,10 +37,6 @@ function mini_layouts_admin_list() {
     $links['delete'] = array(
       'title' => t('Delete'),
       'href' => 'admin/structure/mini-layouts/manage/' . $name . '/delete',
-    );
-    $links['configure_blocks'] = array(
-      'title' => t('Manage blocks'),
-      'href' => 'admin/structure/mini-layouts/manage/' . $name . '/configure-layout-blocks',
     );
     if (user_access('synchronize configuration')) {
       $links['export'] = array(
