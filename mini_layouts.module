@@ -357,6 +357,8 @@ function mini_layouts_autoload_info() {
 
 function mini_layouts_preprocess_layout(&$variables) {
   // This tricks layout_preprocess_layout() into hiding the page title and tabs.
-  $variables['admin'] = TRUE;
+  if ($variables['layout']->module == 'mini_layouts') {
+    $variables['admin'] = TRUE;
+  }
 }
 
