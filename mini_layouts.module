@@ -119,27 +119,6 @@ function mini_layouts_block_info() {
 }
 
 /**
- * Implements hook_block_configure().
- */
-function mini_layouts_block_configure($name, $settings = array()) {
-  if ($name) {
-    $mini_layouts_block = mini_layouts_load($name);
-    $mini_layouts_block['name'] = $name;
-  }
-  else {
-    $mini_layouts_block = array();
-  }
-  return mini_layouts_block_form($mini_layouts_block, FALSE);
-}
-
-/**
- * Implements hook_block_save().
- */
-function mini_layouts_block_save($name, &$edit = array()) {
-  mini_layouts_block_layout_save($edit, $name);
-}
-
-/**
  * Implements hook_block_view().
  *
  * Generates the administrator-defined blocks for display.
