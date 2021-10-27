@@ -26,6 +26,23 @@ class MiniLayout extends Layout {
    */
   var $module = 'mini_layouts';
 
+  /**
+   * An array of LayoutContext instances used by this menu item.
+   *
+   * @var LayoutContext[]
+   */
+  private $contexts = array();
+
+  /**
+   * The internal path of a layout.
+   *
+   * The layout path must match the provided menu item path. Set and get this
+   * variable's value with Layout::getPath() and Layout::setPath().
+   *
+   * @var string
+   */
+  private $path;
+
 
   /**
    * Constructor for a Layout class.
