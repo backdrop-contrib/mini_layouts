@@ -144,4 +144,15 @@ class MiniLayout extends Layout {
    */
   function form(&$form, &$form_state) {}
 
+  /**
+   * Delete this layout.
+   */
+  function delete() {
+    config('layout.mini_layouts.' . $this->name)->delete();
+    $this->invokeHook('delete');
+    layout_reset_caches();
+    cache()->delete('layout:mini_layouts:config');
+    backdrop_static_reset('mini_layouts_block_info');
+  }
+
 }

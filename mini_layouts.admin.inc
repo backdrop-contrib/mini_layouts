@@ -271,7 +271,9 @@ function mini_layouts_block_delete($form, &$form_state, $name) {
  * @see mini_layouts_block_delete()
  */
 function mini_layouts_block_delete_submit($form, &$form_state) {
-  config('block.mini_layouts.' . $form_state['values']['name'])->delete();
+  $block = mini_layouts_load($form_state['values']['name']);
+  $layout = new MiniLayout($block);
+  $layout->delete();
   backdrop_set_message(t('The block %name has been removed.', array('%name' => $form_state['values']['info'])));
   $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
