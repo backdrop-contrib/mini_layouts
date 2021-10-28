@@ -70,9 +70,18 @@ function mini_layouts_menu() {
 }
 
 function mini_layouts_load($name) {
-  // @todo: always return a MiniLayout object
+  $mini_layouts = &backdrop_static(__FUNCTION__, array());
+  if (isset($mini_layouts[$name])) {
+    return $mini_layouts[$name];
+  }
+
   $configs = layout_get_all_configs('mini_layouts');
-  return isset($configs[$name]) ? $configs[$name] : NULL;
+  if (isset($configs[$name])) {
+    $layout = new MiniLayout($configs[$name]);
+    $mini_layouts[$name] = $layout;
+    return $mini_layouts[$name];
+  }
+  return NULL;
 }
 
 /**
@@ -124,11 +133,10 @@ function mini_layouts_block_info() {
  * Generates the administrator-defined blocks for display.
  */
 function mini_layouts_block_view($name = '') {
-  $block = mini_layouts_load($name);
-  if (!$block) {
+  $layout = mini_layouts_load($name);
+  if (!$layout) {
     return array();
   }
-  $layout = new MiniLayout($block);
 
   static $rendering = array();
 
@@ -141,7 +149,7 @@ function mini_layouts_block_view($name = '') {
 
   $renderer = layout_create_renderer('standard', $layout);
 
-  $data['subject'] = strlen($block['title']) ? check_plain($block['title']) : NULL;
+  $data['subject'] = strlen($layout->title) ? check_plain($layout->title) : NULL;
   $data['content'] = array(
     '#markup' => $renderer->render(),
     '#weight' => 0,
@@ -162,24 +170,16 @@ function mini_layouts_block_view($name = '') {
  *
  * @ingroup forms
  */
-function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
-  $edit += array(
-    'name' => NULL,
-    'info' => '',
-    'title' => '',
-    'description' => '',
-    'body' => array('value' => '', 'format' => NULL),
-    'layout_template' => 'boxton',
-  );
+function mini_layouts_block_form($mini_layout, $stand_alone = TRUE) {
   // If the description is the default from hook_block_info(), leave blank.
-  if ($edit['description'] === t('A reusable mini layouts block.')) {
-    $edit['description'] = '';
+  if ($mini_layout->description === t('A reusable mini layouts block.')) {
+    $mini_layout->description = '';
   }
 
   $form['info'] = array(
     '#type' => 'textfield',
     '#title' => t('Admin label'),
-    '#default_value' => $edit['info'],
+    '#default_value' => $mini_layout->info,
     '#maxlength' => 64,
     '#description' => t('This text is used only in administrative interfaces. It will not be shown to site visitors.'),
     '#required' => TRUE,
@@ -187,19 +187,19 @@ function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
   );
   $form['name'] = array(
     '#type' => 'machine_name',
-    '#default_value' => $edit['name'],
+    '#default_value' => $mini_layout->name,
     '#maxlength' => 128,
     '#machine_name' => array(
       'exists' => 'mini_layouts_load',
       'source' => array('info'),
     ),
     '#description' => t('A unique machine-readable name for this Block. It must only contain lowercase letters, numbers, and underscores.'),
-    '#disabled' => isset($edit['name']),
+    '#disabled' => isset($mini_layout->name),
   );
   $form['description'] = array(
     '#type' => 'textfield',
     '#title' => t('Admin description'),
-    '#default_value' => $edit['description'],
+    '#default_value' => $mini_layout->description,
     '#maxlength' => 128,
     '#description' => t('This text is used only in administrative interfaces. It will not be shown to site visitors.<br />Allowed HTML tags: @tags', array('@tags' => _filter_xss_display_allowed_tags())),
     '#id' => 'block-description',
@@ -207,7 +207,7 @@ function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Display title'),
-    '#default_value' => $edit['title'],
+    '#default_value' => $mini_layout->title,
     '#maxlength' => 255,
     '#description' => t('The title of the block as shown to the user. This will affect all places where this block is used.'),
   );
@@ -220,7 +220,7 @@ function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
   $form['layout_template'] = array(
     '#title' => t('Layout template'),
     '#type' => 'radios',
-    '#default_value' => $edit['layout_template'],
+    '#default_value' => $mini_layout->layout_template,
     '#options' => array(),
     '#wrapper_attributes' => array('class' => array('clearfix', 'layout-options')),
     '#required' => TRUE,
@@ -270,9 +270,9 @@ function mini_layouts_block_form($edit = array(), $stand_alone = TRUE) {
  */
 function mini_layouts_block_layout_save(array $edit, $name = NULL) {
   $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
-  $block = mini_layouts_load($name);
+  $layout = mini_layouts_load($name);
 
-  if (!$block) {
+  if (!$layout) {
     $block = array(
       'name' => $name,
       'info' => '',
@@ -280,21 +280,21 @@ function mini_layouts_block_layout_save(array $edit, $name = NULL) {
       'description' => '',
       'layout_template' => 'boxton',
     );
+    $layout = new MiniLayout($block);
   }
 
   foreach (array('info', 'description', 'title', 'body') as $key) {
     if (isset($edit[$key])) {
-      $block[$key] = $edit[$key];
+      $layout->{$key} = $edit[$key];
     }
   }
 
-  $layout = new MiniLayout($block);
   $layout->setLayoutTemplate($edit['layout_template']);
   $layout->save();
 
   // Reset the static cache on the block list so this block is picked up.
   cache()->delete('layout:mini_layouts:config');
-  layout_clear_layout_tempstore($block['name']);
+  layout_clear_layout_tempstore($layout->name);
   backdrop_static_reset('mini_layouts_block_info');
 }
 
@@ -305,8 +305,7 @@ function mini_layouts_edit_content($name) {
   // Load from database to tempstore as Layout pulls from tempstore to build
   // the content form and blocks etc.
   if (!$layout = layout_tempstore_load($name)) {
-    $config = mini_layouts_load($name);
-    $layout = new MiniLayout($config);
+    $layout = mini_layouts_load($name);
 
     // Don't use layout_set_layout_tempstore(). It locks the layout.
     tempstore_set('layout.layout', $layout->name, $layout, 604800);

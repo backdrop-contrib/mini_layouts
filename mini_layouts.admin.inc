@@ -18,7 +18,6 @@ function mini_layouts_admin_list() {
 
   $rows = array();
   foreach ($mini_layouts_block_info as $name => $block_info) {
-    $block = mini_layouts_load($name);
     $row = array();
     $row[] = theme('label_machine_name__block', array(
       'label' => $block_info['info'],
@@ -87,31 +86,32 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   $form['#attached']['css'][] = backdrop_get_path('module', 'mini_layouts') . '/mini_layouts.admin.css';
 
   if ($name) {
-    $mini_layouts_block = mini_layouts_load($name);
+    $mini_layout = mini_layouts_load($name);
 
-    if (!$mini_layouts_block) {
+    if (!$mini_layout) {
       backdrop_not_found();
       exit();
     }
   }
   else {
-    $mini_layouts_block = array(
+    $config = array(
       'info' => '',
       'title' => '',
       'body' => array('value' => '', 'format' => NULL),
       'layout_template' => 'boxton',
     );
+    $mini_layout = new MiniLayout($config);
   }
 
-  if ($mini_layouts_block['info']) {
-    backdrop_set_title(t("'%name' block", array('%name' => $mini_layouts_block['info'])), PASS_THROUGH);
+  if ($mini_layout->info) {
+    backdrop_set_title(t("'%name' block", array('%name' => $mini_layout->info)), PASS_THROUGH);
   }
   else {
     backdrop_set_title(t('Add mini layouts block'));
   }
 
   // Call our own block configuration form (also used by Layout module).
-  $form += mini_layouts_block_form($mini_layouts_block, TRUE);
+  $form += mini_layouts_block_form($mini_layout, TRUE);
 
   // Prepare cancel link.
   if (isset($_GET['destination'])) {
@@ -256,11 +256,11 @@ function mini_layouts_add_block_form_submit($form, &$form_state) {
  * @see mini_layouts_block_delete_submit()
  */
 function mini_layouts_block_delete($form, &$form_state, $name) {
-  $mini_layouts_block = mini_layouts_load($name);
-  $form['info'] = array('#type' => 'hidden', '#value' => $mini_layouts_block['info']);
+  $mini_layout = mini_layouts_load($name);
+  $form['info'] = array('#type' => 'hidden', '#value' => $mini_layout->info);
   $form['name'] = array('#type' => 'hidden', '#value' => $name);
 
-  return confirm_form($form, t('Are you sure you want to delete the block %name?', array('%name' => $mini_layouts_block['info'])), 'admin/structure/mini-layouts', '', t('Delete'), t('Cancel'));
+  return confirm_form($form, t('Are you sure you want to delete the block %name?', array('%name' => $mini_layout->info)), 'admin/structure/mini-layouts', '', t('Delete'), t('Cancel'));
 }
 
 /**
@@ -274,8 +274,7 @@ function mini_layouts_block_delete($form, &$form_state, $name) {
  * @see mini_layouts_block_delete()
  */
 function mini_layouts_block_delete_submit($form, &$form_state) {
-  $block = mini_layouts_load($form_state['values']['name']);
-  $layout = new MiniLayout($block);
+  $layout = mini_layouts_load($form_state['values']['name']);
   $layout->delete();
   backdrop_set_message(t('The block %name has been removed.', array('%name' => $form_state['values']['info'])));
   $form_state['redirect'] = 'admin/structure/mini-layouts';
