@@ -83,6 +83,9 @@ function mini_layouts_admin_list() {
  * @ingroup forms
  */
 function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
+  $form['#attached']['js'][] = backdrop_get_path('module', 'layout') . '/js/layout.admin.js';
+  $form['#attached']['css'][] = backdrop_get_path('module', 'mini_layouts') . '/mini_layouts.admin.css';
+
   if ($name) {
     $mini_layouts_block = mini_layouts_load($name);
 
@@ -128,7 +131,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save block'),
+    '#value' => t('Save mini layout'),
   );
   if ($name) {
     $form['actions']['delete'] = array(
