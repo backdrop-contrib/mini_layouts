@@ -124,7 +124,6 @@ function mini_layouts_block_info() {
  * Generates the administrator-defined blocks for display.
  */
 function mini_layouts_block_view($name = '') {
-  global $language;
   $block = mini_layouts_load($name);
   if (!$block) {
     return array();
@@ -135,14 +134,12 @@ function mini_layouts_block_view($name = '') {
 
   // Prevent loops if someone foolishly puts the block inside itself:
   if (!empty($rendering[$name])) {
-    return;
+    return array();
   }
 
   $rendering[$name] = TRUE;
 
   $renderer = layout_create_renderer('standard', $layout);
-
-  unset($rendering[$name]);
 
   $data['subject'] = strlen($block['title']) ? check_plain($block['title']) : NULL;
   $data['content'] = array(
