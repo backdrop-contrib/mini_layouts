@@ -285,18 +285,19 @@ function mini_layouts_block_layout_save(array $edit, $name = NULL) {
     );
   }
 
-  foreach (array('info', 'description', 'title', 'body', 'layout_template') as $key) {
+  foreach (array('info', 'description', 'title', 'body') as $key) {
     if (isset($edit[$key])) {
       $block[$key] = $edit[$key];
     }
   }
 
-  $config = array();
   $layout = new MiniLayout($block);
+  $layout->setLayoutTemplate($edit['layout_template']);
   $layout->save();
 
   // Reset the static cache on the block list so this block is picked up.
   cache()->delete('layout:mini_layouts:config');
+  layout_clear_layout_tempstore($block['name']);
   backdrop_static_reset('mini_layouts_block_info');
 }
 
