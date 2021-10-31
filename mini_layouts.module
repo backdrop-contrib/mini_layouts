@@ -68,6 +68,42 @@ function mini_layouts_menu() {
     'type' => MENU_LOCAL_ACTION,
     'file' => 'mini_layouts.admin.inc',
   );
+  $base = array(
+    'access arguments' => array('administer layouts'),
+    'theme callback' => 'ajax_base_page_theme',
+  );
+  $items['admin/structure/mini-layouts/manage/%layout_tempstore/context/add'] = array(
+    'title' => 'Add context',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('mini_layouts_context_add_form', 4),
+    'type' => MENU_CALLBACK,
+    'file' => 'mini_layouts.context.admin.inc',
+  ) + $base;
+
+  $items['admin/structure/mini-layouts/manage/%layout_tempstore/relationship/add'] = array(
+    'title' => 'Add relationship',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('mini_layouts_context_relationship_add_form', 4),
+    'type' => MENU_CALLBACK,
+    'file' => 'mini_layouts.context.admin.inc',
+  ) + $base;
+
+  $items['admin/structure/mini-layouts/manage/%layout_tempstore/context/edit/layout/%'] = array(
+    'title' => 'Configure context',
+    'load arguments' => array(4),
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('mini_layouts_context_add_form', 4, 8),
+    'type' => MENU_CALLBACK,
+    'file' => 'mini_layouts.context.admin.inc',
+  ) + $base;
+
+  $items['admin/structure/mini-layouts/manage/%layout_tempstore/relationship/edit/layout/%'] = array(
+    'title' => 'Configure relationship',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('mini_layouts_context_relationship_add_form', 4, 8),
+    'type' => MENU_CALLBACK,
+    'file' => 'mini_layouts.context.admin.inc',
+  ) + $base;
   return $items;
 }
 
@@ -175,8 +211,12 @@ function mini_layouts_block_view($name = '') {
  *
  * @ingroup forms
  */
-function mini_layouts_block_form($mini_layout, $stand_alone = TRUE) {
-  // If the description is the default from hook_block_info(), leave blank.
+function mini_layouts_block_form($form, &$form_state, $mini_layout, $stand_alone = TRUE) {
+  form_load_include($form_state, 'inc', 'mini_layouts', 'mini_layouts.context.admin');
+  form_load_include($form_state, 'inc', 'layout', 'layout.admin');
+
+  $form_state['layout'] = $mini_layout;
+
   if ($mini_layout->description === t('A reusable mini layouts block.')) {
     $mini_layout->description = '';
   }
@@ -256,6 +296,187 @@ function mini_layouts_block_form($mini_layout, $stand_alone = TRUE) {
     $form['description']['#weight'] = 7;
   }
 
+  // Get all contexts except those provided by relationships.
+  $contexts = $mini_layout->getContexts(LayoutContext::USAGE_TYPE_ALL ^ LayoutContext::USAGE_TYPE_RELATIONSHIP);
+  $built_in_contexts = isset($contexts['overrides_path']) ? 2 : 1;
+  $form['context_wrapper'] = array(
+    '#title' => t('Contexts'),
+    '#type' => 'item',
+    '#id' => 'context-wrapper',
+    '#description' => t('(Optional) Contexts define what blocks are available within this layout. Most placeholders in the path will be associated with a context automatically.'),
+    // Current user context is always present.
+  );
+  $form['context_wrapper']['#access'] = !$mini_layout->isDefault();
+  $form['context_wrapper']['#prefix'] = '<div id="layout-contexts">';
+  $form['context_wrapper']['#suffix'] = '</div>';
+  $form['context_wrapper']['context'] = array(
+    '#type' => 'container',
+    '#parents' => array('context'),
+  );
+
+  $form['context_wrapper']['context']['links'] = array(
+    '#theme' => 'layout_action_links',
+  );
+  $form['context_wrapper']['context']['links']['add'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add context'),
+    '#attributes' => array('class' => array('layout-link-button', 'layout-access-add')),
+    '#validate' => array(),
+    '#submit' => array(
+      'layout_settings_form_update_layout',
+      'mini_layouts_settings_form_context_add',
+    ),
+    '#ajax' => array(
+      'callback' => 'layout_ajax_form_open_dialog',
+    ),
+  );
+
+  // Get contexts from relationships
+  $relevant_relationships = layout_relationships_get_relevant_info($contexts);
+  if (!empty($relevant_relationships)) {
+    $form['context_wrapper']['context']['links']['add_relationship'] = array(
+      '#type' => 'submit',
+      '#name' => 'relationship_add_button',
+      '#value' => t('Add relationship'),
+      '#attributes' => array('class' => array('layout-link-button', 'layout-access-add')),
+      '#validate' => array(),
+      '#submit' => array(
+        'layout_settings_form_update_layout',
+        'mini_layouts_settings_form_context_add',
+      ),
+      '#ajax' => array(
+        'callback' => 'layout_ajax_form_open_dialog',
+      ),
+    );
+  }
+
+  $all_context_info = _layout_get_all_info('layout_context');
+  $context_options = array();
+  foreach ($all_context_info as $plugin_name => $context_info) {
+    if (empty($context_info['hidden'])) {
+      $context_options[$plugin_name] = $context_info['title'];
+    }
+  }
+
+  $form['context_wrapper']['context']['required'] = array(
+    '#theme' => 'layout_settings_context_table',
+    '#layout_path' => $mini_layout->getPath(),
+    '#access' => count($contexts) > $built_in_contexts,
+  );
+
+  foreach ($contexts as $context_key => $layout_context) {
+    if ($layout_context->usageType !== LayoutContext::USAGE_TYPE_SYSTEM) {
+      // Contexts that are locked to a particular position (such as node/%).
+      if ($layout_context->position && $layout_context->required) {
+        $form['context_wrapper']['context']['required'][$context_key]['summary'] = array(
+          '#markup' => $layout_context->getAdminSummary($mini_layout->getPath()),
+        );
+        if ($layout_context->locked) {
+          $form['context_wrapper']['context']['required'][$context_key]['plugin'] = array(
+            '#markup' => check_plain($all_context_info[$layout_context->plugin]['title']),
+          );
+        }
+        else{
+          $form['context_wrapper']['context']['required'][$context_key]['plugin'] = array(
+            '#type' => 'select',
+            '#options' => $context_options,
+            '#default_value' => $layout_context->plugin,
+          );
+        }
+      }
+      // Custom contexts and required contexts that do not need position (such
+      // as admin/dashboard).
+      else {
+        $form['context_wrapper']['context']['required'][$context_key]['summary'] = array(
+          '#markup' => $layout_context->getAdminSummary($mini_layout->getPath()),
+        );
+        $form['context_wrapper']['context']['required'][$context_key]['plugin'] = array(
+          '#markup' => check_plain($all_context_info[$layout_context->plugin]['title']),
+        );
+      }
+      if (!$layout_context->required) {
+        $form['context_wrapper']['context']['required'][$context_key]['operations'] = array(
+          '#type' => 'container',
+          '#attributes' => array('class' => array('layout-operations')),
+        );
+        $form['context_wrapper']['context']['required'][$context_key]['operations']['remove'] = array(
+          '#type' => 'submit',
+          '#value' => t('Remove'),
+          '#attributes' => array('class' => array('layout-link-button', 'layout-context-remove')),
+          '#validate' => array(),
+          '#submit' => array(
+            'mini_layouts_settings_form_context_remove',
+            'layout_settings_form_update_layout',
+          ),
+          '#ajax' => array(
+            'callback' => 'layout_ajax_form_update',
+          ),
+          '#name' => 'conditions_' . $context_key . '_remove',
+        );
+        $form['context_wrapper']['context']['required'][$context_key]['operations']['configure'] = array(
+          '#type' => 'submit',
+          '#value' => t('Configure'),
+          '#attributes' => array('class' => array('layout-link-button', 'layout-context-configure')),
+          '#validate' => array(
+            'layout_settings_form_validate',
+          ),
+          '#submit' => array(
+            'mini_layouts_settings_form_context_edit',
+          ),
+          '#ajax' => array(
+            'callback' => 'layout_ajax_form_open_dialog',
+          ),
+          '#name' => 'conditions_' . $context_key . '_configure',
+        );
+      }
+    }
+  }
+
+  $all_relationship_info = _layout_get_all_info('layout_relationship');
+  foreach ($mini_layout->relationships as $relationship_key => $relationship) {
+    $form['context_wrapper']['context']['required'][$relationship_key]['summary'] = array(
+      '#markup' => $relationship->getAdminSummary(),
+    );
+    $form['context_wrapper']['context']['required'][$relationship_key]['plugin'] = array(
+      '#markup' => isset($all_relationship_info[$relationship->plugin]['title']) ?
+        check_plain($all_relationship_info[$relationship->plugin]['title']) :
+        t('Broken'),
+    );
+    $form['context_wrapper']['context']['required'][$relationship_key]['operations'] = array(
+      '#type' => 'container',
+      '#attributes' => array('class' => array('layout-operations')),
+    );
+    $form['context_wrapper']['context']['required'][$relationship_key]['operations']['remove'] = array(
+      '#type' => 'submit',
+      '#value' => t('Remove'),
+      '#attributes' => array('class' => array('layout-link-button', 'layout-context-remove')),
+      '#validate' => array(),
+      '#submit' => array(
+        'mini_layouts_settings_form_context_relationship_remove',
+        'layout_settings_form_update_layout',
+      ),
+      '#ajax' => array(
+        'callback' => 'layout_ajax_form_update',
+      ),
+      '#name' => 'conditions_' . $relationship_key . '_remove',
+    );
+    $form['context_wrapper']['context']['required'][$relationship_key]['operations']['configure'] = array(
+      '#type' => 'submit',
+      '#value' => t('Configure'),
+      '#attributes' => array('class' => array('layout-link-button', 'layout-context-configure')),
+      '#validate' => array(
+        'layout_settings_form_validate',
+      ),
+      '#submit' => array(
+        'mini_layouts_settings_form_context_relationship_edit',
+      ),
+      '#ajax' => array(
+        'callback' => 'layout_ajax_form_open_dialog',
+      ),
+      '#name' => 'conditions_' . $relationship_key . '_configure',
+    );
+  }
+
   return $form;
 }
 
@@ -275,9 +496,13 @@ function mini_layouts_block_form($mini_layout, $stand_alone = TRUE) {
  */
 function mini_layouts_block_layout_save(array $edit, $name = NULL) {
   $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
-  $layout = mini_layouts_load($name);
 
-  if (!$layout) {
+  $mini_layout = layout_tempstore_load($name);
+
+  if (!$mini_layout) {
+    $mini_layout = mini_layouts_load($name);
+  }
+  elseif (!$mini_layout) {
     $block = array(
       'name' => $name,
       'info' => '',
@@ -285,21 +510,22 @@ function mini_layouts_block_layout_save(array $edit, $name = NULL) {
       'description' => '',
       'layout_template' => 'boxton',
     );
-    $layout = new MiniLayout($block);
+    $mini_layout = new MiniLayout($block);
   }
 
   foreach (array('info', 'description', 'title', 'body') as $key) {
     if (isset($edit[$key])) {
-      $layout->{$key} = $edit[$key];
+      $mini_layout->{$key} = $edit[$key];
     }
   }
 
-  $layout->setLayoutTemplate($edit['layout_template']);
-  $layout->save();
+dpm($mini_layout->getContexts());
+  $mini_layout->setLayoutTemplate($edit['layout_template']);
+  $mini_layout->save();
 
   // Reset the static cache on the block list so this block is picked up.
   cache()->delete('layout:mini_layouts:config');
-  layout_clear_layout_tempstore($layout->name);
+  layout_clear_layout_tempstore($mini_layout->name);
   backdrop_static_reset('mini_layouts_block_info');
 }
 

@@ -66,13 +66,16 @@ class MiniLayout extends Layout {
    * Save a layout to config.
    */
   function save() {
-    if ($this->storage === LAYOUT_STORAGE_DEFAULT) {
+    $this->contexts = $this->getContexts();
+          dpm($this->contexts);
+  if ($this->storage === LAYOUT_STORAGE_DEFAULT) {
       $this->storage = LAYOUT_STORAGE_OVERRIDE;
     }
     $is_new = !empty($this->is_new);
 
     // Don't save path based contexts as these are generated on the fly.
     foreach ($this->contexts as $key => $context) {
+        dpm('aha');
       if (!$context->storage) {
         unset($this->contexts[$key]);
       }

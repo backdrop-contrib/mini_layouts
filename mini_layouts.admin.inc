@@ -64,6 +64,7 @@ function mini_layouts_admin_list() {
   );
 }
 
+
 /**
  * Form constructor for the block configuration form.
  *
@@ -86,9 +87,12 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   $form['#attached']['css'][] = backdrop_get_path('module', 'mini_layouts') . '/mini_layouts.admin.css';
 
   if ($name) {
-    $mini_layout = mini_layouts_load($name);
+    $mini_layout = layout_tempstore_load($name);
 
     if (!$mini_layout) {
+      $mini_layout = mini_layouts_load($name);
+    }
+    elseif (!$mini_layout) {
       backdrop_not_found();
       exit();
     }
@@ -111,7 +115,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   }
 
   // Call our own block configuration form (also used by Layout module).
-  $form += mini_layouts_block_form($mini_layout, TRUE);
+  $form += mini_layouts_block_form($form, $form_state, $mini_layout, TRUE);
 
   // Prepare cancel link.
   if (isset($_GET['destination'])) {
