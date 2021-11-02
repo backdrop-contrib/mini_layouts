@@ -519,7 +519,6 @@ function mini_layouts_block_layout_save(array $edit, $name = NULL) {
     }
   }
 
-dpm($mini_layout->getContexts());
   $mini_layout->setLayoutTemplate($edit['layout_template']);
   $mini_layout->save();
 

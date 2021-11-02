@@ -106,6 +106,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     );
     $mini_layout = new MiniLayout($config);
   }
+  $form_state['mini_layout'] = $mini_layout;
 
   if ($mini_layout->info) {
     backdrop_set_title(t("'%name' block", array('%name' => $mini_layout->info)), PASS_THROUGH);
@@ -146,14 +147,29 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     );
   }
   $form['actions']['cancel'] = array(
-    '#type' => 'link',
-    '#title' => t('Cancel'),
-    '#href' => $options['path'],
-    '#options' => $options,
-    '#weight' => 1,
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+    '#limit_validation_errors' => array(),
+    '#submit' => array('mini_layouts_admin_configure_cancel'),
   );
 
   return $form;
+}
+
+/**
+ * Form validation handler for mini_layouts_admin_configure().
+ *
+ * @param array $form
+ *   An associative array containing the structure of a portion of the form.
+ * @param array $form_state
+ *   A keyed array containing the current state of the form.
+ *
+ * @see mini_layouts_admin_configure()
+ * @see mini_layouts_admin_configure_submit()
+ */
+function mini_layouts_admin_configure_cancel($form, &$form_state) {
+  layout_clear_layout_tempstore($form_state['mini_layout']->name);
+  $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
 
 /**

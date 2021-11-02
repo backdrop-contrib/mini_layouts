@@ -18,7 +18,6 @@ function mini_layouts_settings_form_context_add($form, &$form_state) {
   if (isset($_GET['destination'])) {
     unset($_GET['destination']);
   }
-  dpm($form_state['clicked_button']['#name']);
   if ($form_state['clicked_button']['#name'] === 'relationship_add_button') {
     $form_state['redirect'] = 'admin/structure/mini-layouts/manage/' . $form_state['layout']->name . '/relationship/add';
   }
@@ -78,7 +77,7 @@ function mini_layouts_context_add_form($form, &$form_state, Layout $layout = NUL
     '#parents' => array('context'),
     '#ajax' => array(
       'wrapper' => 'context_settings',
-      'callback' => 'layout_context_ajax_style',
+      'callback' => 'mini_layouts_context_ajax_style',
     ),
   );
   foreach ($all_context_info as $key => $context_info) {
@@ -88,13 +87,21 @@ function mini_layouts_context_add_form($form, &$form_state, Layout $layout = NUL
       $form['context']['#default_value'] = isset($handler->plugin) ? $handler->plugin : NULL;
     }
   }
+  $form['context']['#options']['path'] = 'Context from path';
 
   $form['context_settings'] = array(
     '#type' => 'container',
     '#id' => 'context_settings',
     '#parents' => array('context_settings'),
   );
-  $form['context_settings']['content'] = layout_context_return_form($form['context_settings'], $form_state);
+  $form['context_settings']['content'] = mini_layouts_context_return_form($form['context_settings'], $form_state);
+  $form['context_settings']['context']['path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Path'),
+    '#access' => !empty($form_state['values']['context']) && ($form_state['values']['context'] == 'path'),
+    '#description' => t('A path which uses the percent symbol ("%") to indicate a placeholder, like "node/%" or "user/%"'),
+  );
+
   $form['actions'] = array(
     '#type' => 'actions',
   );
@@ -131,7 +138,7 @@ function mini_layouts_context_add_form($form, &$form_state, Layout $layout = NUL
       'callback' => 'layout_ajax_context_cancel_dialog',
     ),
   );
-  dpm($layout);
+
   return $form;
 }
 
@@ -221,7 +228,7 @@ function mini_layouts_context_relationship_add_form($form, &$form_state, Layout 
     '#id' => 'context_settings',
     '#parents' => array('context_settings'),
   );
-  $form['context_settings']['content'] = layout_context_return_form($form['context_settings'], $form_state);
+  $form['context_settings']['content'] = mini_layouts_context_return_form($form['context_settings'], $form_state);
   $form['actions'] = array(
     '#type' => 'actions',
   );
@@ -288,6 +295,7 @@ function mini_layouts_context_add_load_context_nojs($form, &$form_state) {
 /**
  * Helper function to return a partial context or relationship settings form.
  */
+ // @todo: this is not being used.
 function mini_layouts_context_return_form($form, &$form_state) {
   form_load_include($form_state, 'inc', 'mini_layouts', 'mini_layouts.context.admin');
   form_load_include($form_state, 'inc', 'layout', 'layout.context.admin');
@@ -298,23 +306,25 @@ function mini_layouts_context_return_form($form, &$form_state) {
     return array();
   }
 
-  if (isset($form_state['values']['context'])) {
+  if (isset($form_state['values']['context']) && $form_state['values']['context'] != 'path') {
     $handler = layout_create_context($form_state['values']['context']);
     $handler->is_new = TRUE;
   }
-  elseif (isset($form_state['values']['relationship'])) {
+  elseif (isset($form_state['values']['relationship']) && $form_state['values']['context'] != 'path') {
     list($plugin_name, $child_delta) = explode(':', $form_state['values']['relationship']);
     $handler = layout_create_handler('layout_relationship', $plugin_name);
     $handler->childDelta = $child_delta;
     $handler->is_new = TRUE;
   }
-  else {
+  elseif ($form_state['values']['context'] != 'path') {
     $handler = $form_state['handler'];
   }
 
-  $form_state['layout'] = $layout;
-  $form_state['handler'] = $handler;
-  $handler->form($form, $form_state);
+  if ($form_state['values']['context'] != 'path') {
+    $form_state['layout'] = $layout;
+    $form_state['handler'] = $handler;
+    $handler->form($form, $form_state);
+  }
 
   return $form;
 }
@@ -323,6 +333,12 @@ function mini_layouts_context_return_form($form, &$form_state) {
  * Validation handler for layout_context_add_form().
  */
 function mini_layouts_context_add_form_validate($form, &$form_state) {
+  if ($form_state['values']['context'] == 'path') {
+    $contexts = layout_context_required_by_path($form_state['values']['path']);
+    if (empty($contexts)) {
+      form_set_error('path', t('The submitted path does not provide context.'));
+    }
+  }
   if (isset($form_state['handler'])) {
     $handler = $form_state['handler'];
     $handler->formValidate($form, $form_state);
@@ -340,26 +356,31 @@ function mini_layouts_context_add_form_submit($form, &$form_state) {
   /* @var Layout $layout */
   $layout = $form_state['layout'];
 
-  if (!isset($form_state['handler'])) {
+  if (isset($form_state['handler'])) {
+    /* @var LayoutAccess $handler */
+    $handler = $form_state['handler'];
+    $handler->formSubmit($form, $form_state);
+
+    if (!empty($handler->is_new)) {
+      $handler->is_new = FALSE;
+      $handler->storage = TRUE;
+      if ($form_state['clicked_button']['#name'] === 'context_add_button') {
+        $layout->setContexts($handler->name, $handler);
+      }
+      else {
+        $uuid = new Uuid();
+        $key = $uuid->generate();
+        $layout->relationships[$key] = $handler;
+      }
+    }
+  }
+  elseif ($form_state['values']['context'] == 'path') {
+    $layout->setPath($form_state['values']['path']);
+  }
+  else {
     return;
   }
-  /* @var LayoutAccess $handler */
-  $handler = $form_state['handler'];
-  $handler->formSubmit($form, $form_state);
-  dpm($layout);
-  if (!empty($handler->is_new)) {
-  dpm($layout);
-    $handler->is_new = FALSE;
-    $handler->storage = TRUE;
-    if ($form_state['clicked_button']['#name'] === 'context_add_button') {
-      $layout->setContexts($handler->name, $handler);
-    }
-    else {
-      $uuid = new Uuid();
-      $key = $uuid->generate();
-      $layout->relationships[$key] = $handler;
-    }
-  }
+    
   layout_set_layout_tempstore($layout);
   $layout->locked = FALSE;
 
