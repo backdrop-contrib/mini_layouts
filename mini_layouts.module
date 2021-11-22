@@ -185,7 +185,7 @@ function mini_layouts_block_view($name = '') {
 
   $rendering[$name] = TRUE;
 
-  $renderer = layout_create_renderer('standard', $layout);
+  $renderer = layout_create_renderer('mini_layouts_renderer', $layout);
 
   $data['subject'] = strlen($layout->title) ? check_plain($layout->title) : NULL;
   $data['content'] = array(
@@ -574,11 +574,23 @@ function mini_layouts_layout_content_form_submit(&$form, &$form_state) {
 }
 
 /**
+ * Implements hook_layout_renderer_info().
+ */
+function mini_layouts_layout_renderer_info() {
+  $info['mini_layouts_renderer'] = array(
+    'class' => 'MiniLayoutsRenderer',
+  );
+
+  return $info;
+}
+
+/**
  * Implements hook_autoload_info().
  */
 function mini_layouts_autoload_info() {
   return array(
     'MiniLayout' => 'layout.mini_layouts.class.inc',
+    'MiniLayoutsRenderer' => 'mini_layouts_renderer.inc',
   );
 }
 
