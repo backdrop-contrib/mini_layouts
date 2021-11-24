@@ -51,11 +51,8 @@ class MiniLayout extends Layout {
    *   An array of configuration data.
    */
   function __construct(array $config = array()) {
-    if (empty($this->path)) {
-      $this->path = uniqid();
-    }
     parent::__construct($config);
-    // $this->path = $config['delta'];
+    $this->path = $config['path'];
     // Ensure contexts is always set to an array.
     if (empty($this->contexts)) {
       $this->contexts = array();
@@ -171,6 +168,34 @@ class MiniLayout extends Layout {
     layout_reset_caches();
     cache()->delete('layout:mini_layouts:config');
     backdrop_static_reset('mini_layouts_block_info');
+  }
+
+  /**
+   * Set a layout path.
+   */
+  function setPath($path) {
+    if ($this->path !== $path) {
+      $this->path = $path;
+      $this->resetContexts();
+    }
+  }
+
+  /**
+   * Return a layout's path based on its assigned menu item.
+   */
+  function getPath() {
+    return $this->path;
+  }
+
+  /**
+   * Return all contexts (from both the layout and menu item) for this Layout.
+   */
+  function getContexts($include_types = LayoutContext::USAGE_TYPE_ALL) {
+    $this->contexts = parent::getContexts($include_types);
+    if ($this->path) {
+      $this->contexts += layout_context_required_by_path($this->path);
+    }
+    return $this->contexts;
   }
 
 }

@@ -338,6 +338,9 @@ function mini_layouts_context_add_form_validate($form, &$form_state) {
     if (empty($contexts)) {
       form_set_error('path', t('The submitted path does not provide context.'));
     }
+    if (substr_count($form_state['values']['path'], '%') > 1) {
+      form_set_error('path', t('Only one placeholder is allowed.'));
+    }
   }
   if (isset($form_state['handler'])) {
     $handler = $form_state['handler'];
@@ -351,6 +354,7 @@ function mini_layouts_context_add_form_validate($form, &$form_state) {
  * Saves a context or relationship into the layout.
  */
 function mini_layouts_context_add_form_submit($form, &$form_state) {
+  form_load_include($form_state, 'inc', 'mini_layouts', 'mini_layouts.admin');
   form_load_include($form_state, 'inc', 'mini_layouts', 'mini_layouts.context.admin');
   form_load_include($form_state, 'inc', 'layout', 'layout.admin');
   /* @var Layout $layout */
@@ -376,6 +380,7 @@ function mini_layouts_context_add_form_submit($form, &$form_state) {
   }
   elseif ($form_state['values']['context'] == 'path') {
     $layout->setPath($form_state['values']['path']);
+    // $layout->resetContexts();
   }
   else {
     return;
@@ -384,8 +389,8 @@ function mini_layouts_context_add_form_submit($form, &$form_state) {
   layout_set_layout_tempstore($layout);
   $layout->locked = FALSE;
 
-  $form_state['ajax_rebuild_form'] = 'layout_settings_form';
-  $form_state['ajax_rebuild_args'] = array($layout);
+  $form_state['ajax_rebuild_form'] = 'mini_layouts_admin_configure';
+  $form_state['ajax_rebuild_args'] = array($layout->name);
   $form_state['ajax_update'] = array('context_wrapper');
   $form_state['redirect'] = 'admin/structure/mini-layouts/manage/' . $layout->name . '/configure';
 }
@@ -412,17 +417,22 @@ function mini_layouts_settings_form_context_relationship_edit($form, &$form_stat
 function mini_layouts_settings_form_context_remove($form, &$form_state) {
   $removed_context = $form_state['clicked_button']['#array_parents'][3];
 
-  // Find all relationships to this context and remove them too.
   $contexts = $form_state['layout']->getContexts();
-  $id = $contexts[$removed_context]->settings['id'];
-  $relationships = $form_state['layout']->relationships;
-  foreach ($relationships as $key => $relationship) {
-    if ($relationship->settings['context_parent'] == 'id:' . $id) {
-      unset($form_state['layout']->relationships[$key]);
+  $context = $contexts[$removed_context];
+  if ($context->position) {
+    $form_state['layout']->setPath('');
+  } else {
+   // Find all relationships to this context and remove them too.
+    $id = $context->settings['id'];
+    $relationships = $form_state['layout']->relationships;
+    foreach ($relationships as $key => $relationship) {
+      if ($relationship->settings['context_parent'] == 'id:' . $id) {
+        unset($form_state['layout']->relationships[$key]);
+      }
     }
+    // Then finally remove the context.
+    $form_state['layout']->clearContexts($removed_context);
   }
-  // Then finally remove the context.
-  $form_state['layout']->clearContexts($removed_context);
 
   layout_set_layout_tempstore($form_state['layout']);
 
