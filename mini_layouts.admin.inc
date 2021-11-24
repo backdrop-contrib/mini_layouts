@@ -83,6 +83,10 @@ function mini_layouts_admin_list() {
  * @ingroup forms
  */
 function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
+  form_load_include($form_state, 'inc', 'mini_layouts', 'mini_layouts.admin');
+  form_load_include($form_state, 'inc', 'mini_layouts', 'mini_layouts.context.admin');
+  form_load_include($form_state, 'inc', 'layout', 'layout.admin');
+
   $form['#attached']['js'][] = backdrop_get_path('module', 'layout') . '/js/layout.admin.js';
   $form['#attached']['css'][] = backdrop_get_path('module', 'mini_layouts') . '/mini_layouts.admin.css';
 
@@ -90,7 +94,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     $mini_layout = layout_tempstore_load($name);
 
     if (!$mini_layout) {
-      $mini_layout = mini_layouts_load($name);
+      $mini_layout = mini_layouts_load($name, TRUE);
     }
     elseif (!$mini_layout) {
       backdrop_not_found();
@@ -106,7 +110,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     );
     $mini_layout = new MiniLayout($config);
   }
-  $form_state['mini_layout'] = $mini_layout;
+  $form_state['layout'] = $mini_layout;
 
   if ($mini_layout->info) {
     backdrop_set_title(t("'%name' block", array('%name' => $mini_layout->info)), PASS_THROUGH);
@@ -406,7 +410,7 @@ dpm($contexts);
  * @see mini_layouts_admin_configure_submit()
  */
 function mini_layouts_admin_configure_cancel($form, &$form_state) {
-  layout_clear_layout_tempstore($form_state['mini_layout']->name);
+  layout_clear_layout_tempstore($form_state['layout']->name);
   $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
 
@@ -451,7 +455,7 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
   $mini_layout = layout_tempstore_load($name);
 
   if (!$mini_layout) {
-    $mini_layout = mini_layouts_load($name);
+    $mini_layout = mini_layouts_load($name, TRUE);
   }
   elseif (!$mini_layout) {
     $block = array(

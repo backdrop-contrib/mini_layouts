@@ -316,11 +316,11 @@ function mini_layouts_context_return_form($form, &$form_state) {
     $handler->childDelta = $child_delta;
     $handler->is_new = TRUE;
   }
-  elseif ($form_state['values']['context'] != 'path') {
+  elseif (isset($form_state['values']['context']) && $form_state['values']['context'] != 'path') {
     $handler = $form_state['handler'];
   }
 
-  if ($form_state['values']['context'] != 'path') {
+  if (isset($form_state['values']['context']) && $form_state['values']['context'] != 'path') {
     $form_state['layout'] = $layout;
     $form_state['handler'] = $handler;
     $handler->form($form, $form_state);
@@ -416,6 +416,7 @@ function mini_layouts_settings_form_context_relationship_edit($form, &$form_stat
  */
 function mini_layouts_settings_form_context_remove($form, &$form_state) {
   $removed_context = $form_state['clicked_button']['#array_parents'][3];
+  $form_state['layout'] = $form_state['layout'];
 
   $contexts = $form_state['layout']->getContexts();
   $context = $contexts[$removed_context];

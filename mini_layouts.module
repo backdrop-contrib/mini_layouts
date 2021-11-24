@@ -107,9 +107,9 @@ function mini_layouts_menu() {
   return $items;
 }
 
-function mini_layouts_load($name) {
+function mini_layouts_load($name, $set_tempstore = FALSE) {
   $mini_layouts = &backdrop_static(__FUNCTION__, array());
-  if (isset($mini_layouts[$name])) {
+  if (isset($mini_layouts[$name]) && !$set_tempstore) {
     return $mini_layouts[$name];
   }
 
@@ -117,6 +117,7 @@ function mini_layouts_load($name) {
   if (isset($configs[$name])) {
     $layout = new MiniLayout($configs[$name]);
     $mini_layouts[$name] = $layout;
+    layout_set_layout_tempstore($mini_layouts[$name]);
     return $mini_layouts[$name];
   }
   return NULL;
@@ -199,53 +200,6 @@ function mini_layouts_block_view($name = '') {
   return $data;
 }
 
-/**
- * Saves a user-created block in a config file.
- *
- * @param array $edit
- *   Associative array of fields to save. Array keys:
- *   - name: The machine name for the block
- *   - info: The administrative title for the block.
- *   - description: The administrative description for the block.
- *   - title: The block title (optional, since layouts have their own title field)
- *   - layout_template: The template used by this mini layout.
- * @param string|NULL $name
- *   Machine name of the block to save, comprised of lower-case letters,
- *   numbers, and underscores.
- */
-function mini_layouts_block_layout_save(array $edit, $name = NULL) {
-  $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
-
-  $mini_layout = layout_tempstore_load($name);
-
-  if (!$mini_layout) {
-    $mini_layout = mini_layouts_load($name);
-  }
-  elseif (!$mini_layout) {
-    $block = array(
-      'name' => $name,
-      'info' => '',
-      'title' => '',
-      'description' => '',
-      'layout_template' => 'boxton',
-    );
-    $mini_layout = new MiniLayout($block);
-  }
-
-  foreach (array('info', 'description', 'title', 'body') as $key) {
-    if (isset($edit[$key])) {
-      $mini_layout->{$key} = $edit[$key];
-    }
-  }
-
-  $mini_layout->setLayoutTemplate($edit['layout_template']);
-  $mini_layout->save();
-
-  // Reset the static cache on the block list so this block is picked up.
-  cache()->delete('layout:mini_layouts:config');
-  layout_clear_layout_tempstore($mini_layout->name);
-  backdrop_static_reset('mini_layouts_block_info');
-}
 
 /**
  * Pass through to the layouts content editor.
@@ -254,7 +208,7 @@ function mini_layouts_edit_content($name) {
   // Load from database to tempstore as Layout pulls from tempstore to build
   // the content form and blocks etc.
   if (!$layout = layout_tempstore_load($name)) {
-    $layout = mini_layouts_load($name);
+    $layout = mini_layouts_load($name, TRUE);
 
     // Don't use layout_set_layout_tempstore(). It locks the layout.
     tempstore_set('layout.layout', $layout->name, $layout, 604800);
