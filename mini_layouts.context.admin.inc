@@ -46,7 +46,7 @@ function mini_layouts_context_add_form($form, &$form_state, Layout $layout = NUL
   if (isset($context_id)) {
     $is_new_context = FALSE;
   }
-
+dpm('opo');
   // Ensure AJAX callbacks display the correct title by setting it here.
   $form['#title'] = $is_new_context ? t('Add context') : t('Configure context');
 
