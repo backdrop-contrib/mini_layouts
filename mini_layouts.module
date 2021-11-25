@@ -34,13 +34,11 @@ function mini_layouts_menu() {
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('mini_layouts_admin_configure', 4),
     'access arguments' => array('administer blocks'),
-    'context' => MENU_CONTEXT_INLINE,
     'file' => 'mini_layouts.admin.inc',
   );
   $items['admin/structure/mini-layouts/manage/%/configure'] = array(
     'title' => 'Configure mini layout',
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'context' => MENU_CONTEXT_INLINE,
   );
   $items['admin/structure/mini-layouts/manage/%/delete'] = array(
     'title' => 'Delete mini layouts',
@@ -57,7 +55,6 @@ function mini_layouts_menu() {
     'page arguments' => array(4),
     'access arguments' => array('administer blocks'),
     'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_INLINE,
     'file' => 'mini_layouts.admin.inc',
   );
   $items['admin/structure/mini-layouts/add'] = array(
