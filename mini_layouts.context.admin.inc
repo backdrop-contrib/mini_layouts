@@ -312,14 +312,13 @@ function mini_layouts_context_return_form($form, &$form_state) {
     $handler = layout_create_context($form_state['values']['context']);
     $handler->is_new = TRUE;
   }
-  elseif (isset($form_state['values']['relationship']) && $form_state['values']['context'] != 'path') {
+  elseif (isset($form_state['values']['relationship'])) {
     list($plugin_name, $child_delta) = explode(':', $form_state['values']['relationship']);
     $handler = layout_create_handler('layout_relationship', $plugin_name);
     $handler->childDelta = $child_delta;
     $handler->is_new = TRUE;
   }
   elseif (!empty($form_state['path']) || (isset($form_state['values']['context']) && $form_state['values']['context'] == 'path')) {
-  dpm($form_state['path'], 'll');
     $path = TRUE;
   }
   else {

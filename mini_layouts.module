@@ -107,22 +107,6 @@ function mini_layouts_menu() {
   return $items;
 }
 
-function mini_layouts_load($name, $set_tempstore = FALSE) {
-  $mini_layouts = &backdrop_static(__FUNCTION__, array());
-  if (isset($mini_layouts[$name]) && !$set_tempstore) {
-    return $mini_layouts[$name];
-  }
-
-  $configs = layout_get_all_configs('mini_layouts');
-  if (isset($configs[$name])) {
-    $layout = new MiniLayout($configs[$name]);
-    $mini_layouts[$name] = $layout;
-    layout_set_layout_tempstore($mini_layouts[$name]);
-    return $mini_layouts[$name];
-  }
-  return NULL;
-}
-
 /**
  * Implements hook_config_info().
  */
@@ -172,7 +156,14 @@ function mini_layouts_block_info() {
  * Generates the administrator-defined blocks for display.
  */
 function mini_layouts_block_view($name = '') {
-  $layout = mini_layouts_load($name);
+  $active_layout = mini_layout_get_layout_by_path();
+
+  if (!empty($active_layout) && $active_layout->name == $name) {
+    $layout = $active_layout;
+  }
+  else {
+    $layout = mini_layouts_load($name);
+  }
   if (!$layout) {
     return array();
   }
@@ -187,7 +178,6 @@ function mini_layouts_block_view($name = '') {
   $rendering[$name] = TRUE;
 
   $renderer = layout_create_renderer('mini_layouts_renderer', $layout);
-
   $data['subject'] = strlen($layout->title) ? check_plain($layout->title) : NULL;
   $data['content'] = array(
     '#markup' => $renderer->render(),
@@ -267,9 +257,206 @@ function mini_layouts_autoload_info() {
   );
 }
 
+/**
+ * Implements hook_preprocess_layout().
+ */
 function mini_layouts_preprocess_layout(&$variables) {
   // This tricks layout_preprocess_layout() into hiding the page title and tabs.
   if ($variables['layout']->module == 'mini_layouts') {
     $variables['admin'] = TRUE;
   }
+}
+
+
+/**
+ * Get any mini layout which path is set as the current path.
+ *
+ * This is mainly invoked to load context data on mini layout view..
+ *
+ * @return MiniLayout
+ */
+function mini_layout_get_layout_by_path() {
+  $router_item = menu_get_item();
+
+  // Use the static cache, but keyed on the normal path (such as node/1), rather
+  // than the system path (such as node/%), since client modules might serve up
+  // different layouts for the same system path.
+  $href = $router_item['href'];
+  $layouts_by_path = &backdrop_static(__FUNCTION__, array());
+  if (isset($layouts_by_path[$href])) {
+    return $layouts_by_path[$href];
+  }
+
+  $layouts = mini_layout_load_multiple_by_router_item($router_item);
+  if (empty($layouts)) {
+    return;
+  }
+
+  $selected_layout = NULL;
+  foreach ($layouts as $layout) {
+    // Contexts must have their data set before the layout's access may be
+    // checked.
+    $contexts = $layout->getContexts();
+    foreach ($contexts as $context) {
+      if (isset($context->position)) {
+        if (!is_object($context->data)) {
+          if (isset($router_item['map'][$context->position])) {
+            $context_data = $router_item['map'][$context->position];
+            // If the router item contains the context object in the right
+            // position, then we can just set the data from that.
+            if (is_object($context_data)) {
+              $context->setData($context_data);
+            }
+            else {
+              // If the context data was not an object, then we can try to set
+              // it using the plugin's load callback. If there is no callback,
+              // then it must be a string pass-through, so we leave it as is.
+              $context_info = layout_get_context_info($context->plugin);
+              if (isset($context_info['load callback'])) {
+                $context_data = call_user_func_array($context_info['load callback'], array($router_item['original_map'][$context->position]));
+              }
+              $context->setData($context_data);
+            }
+          }
+        }
+      }
+    }
+    if (!$layout->disabled && $layout->checkAccess()) {
+      $selected_layout = $layout;
+      break;
+    }
+  }
+
+  $layouts_by_path[$href] = $selected_layout;
+  return $selected_layout;
+}
+
+/**
+ * Load all layouts for a given router item and allow other modules to alter
+ * them and/or set their contexts.
+ *
+ * @param array $router_item
+ *   The fully built menu router item, e.g., what is returned by menu_get_item().
+ *
+ * @return MiniLayout[]
+ *   An array of MiniLayout object instances.
+ */
+function mini_layout_load_multiple_by_router_item($router_item, $skip_menu_items = NULL) {
+  $href = $router_item['href'];
+  $layouts_by_item = &backdrop_static(__FUNCTION__, array());
+  if (isset($layouts_by_item[$href])) {
+    return $layouts_by_item[$href];
+  }
+  $layouts = mini_layout_load_multiple_by_path($router_item['path']);
+
+  backdrop_alter('mini_layout_load_by_router_item', $layouts, $router_item);
+  $layouts_by_item[$href] = $layouts;
+  return $layouts;
+}
+
+/**
+ * Load all mini layouts at a given path.
+ *
+ * @param string $path
+ *   The menu routing path, with all placeholders represented by "%" symbols.
+ *
+ * @return MiniLayout[]
+ *   An array of MiniLayout object instances.
+ */
+function mini_layout_load_multiple_by_path($path) {
+  if ($cache = cache('mini_layout_path')->get($path)) {
+    $layouts = $cache->data;
+
+    // Populate these cached layouts into layout_load_multiple() to optimize
+    // any future calls to it.
+    $static_cache = &backdrop_static('mini_layout_load_multiple', array());
+    $static_cache = array_merge($layouts, $static_cache);
+  }
+  else {
+    $layout_names = mini_layout_get_path_layout_names($path);
+
+    $layouts = mini_layout_load_multiple($layout_names);
+    cache('mini_layout_path')->set($path, $layouts);
+  }
+  return $layouts;
+}
+
+/**
+ * Get a list of mini layouts that share a particular path.
+ */
+function mini_layout_get_path_layout_names($path) {
+  $path_map = &backdrop_static(__FUNCTION__, array());
+  if (empty($path_map)) {
+    $configs = layout_get_all_configs('mini_layouts');
+    foreach ($configs as $layout_name => $config) {
+      if (isset($config['path'])) {
+        $path_map[$config['path']][] = $layout_name;
+      }
+    }
+  }
+
+  return isset($path_map[$path]) ? $path_map[$path] : array();
+}
+
+/**
+ * Load multiple mini layouts based on a particular criteria.
+ *
+ * @param array $layout_names
+ *   The names of the mini layouts to be loaded.
+ *
+ * @return MiniLayout[]
+ *   An array of MiniLayout object instances.
+ */
+function mini_layout_load_multiple($layout_names) {
+  $loaded_layouts = &backdrop_static(__FUNCTION__, array());
+
+  $layouts_to_load = array();
+  foreach ($layout_names as $layout_name) {
+    if (!isset($loaded_layouts[$layout_name])) {
+      $layouts_to_load[] = $layout_name;
+    }
+  }
+
+  if ($layouts_to_load) {
+    // Cache the raw config files once read.
+    $configs = layout_get_all_configs('mini_layouts');
+
+    // Create the mini layout instances and associate the menu items with each.
+    foreach ($layouts_to_load as $layout_name) {
+      if (isset($configs[$layout_name])) {
+        $layout_data = $configs[$layout_name];
+        $loaded_layouts[$layout_name] = new MiniLayout($layout_data);
+      }
+    }
+  }
+
+  // Return the requested mini layouts.
+  $layouts = array();
+  foreach ($layout_names as $layout_name) {
+    if (isset($loaded_layouts[$layout_name])) {
+      $layouts[$layout_name] = $loaded_layouts[$layout_name];
+    }
+    else {
+      $layouts[$layout_name] = FALSE;
+    }
+  }
+
+  return $layouts;
+}
+
+/**
+ * Load a single mini layout.
+ *
+ * @return MiniLayout[]
+ *   A MiniLayout object instance.
+ */
+function mini_layouts_load($layout_name, $set_tempstore = FALSE) {
+  $layouts = mini_layout_load_multiple(array($layout_name));
+
+  $return = $layouts[$layout_name];
+  if ($set_tempstore && !empty($return)) {
+    layout_set_layout_tempstore($return);
+  }
+
+  return $return;
 }

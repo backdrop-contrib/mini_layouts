@@ -14,7 +14,7 @@
  *   $html_output = $renderer->render();
  * @endcode
  */
-class LayoutRendererStandard {
+class MiniLayoutsRenderer extends LayoutRendererStandard {
   /**
    * The fully-loaded Layout object that is to be rendered.
    *
