@@ -52,6 +52,7 @@ class MiniLayout extends Layout {
    */
   function __construct(array $config = array()) {
     parent::__construct($config);
+    $this->contexts = parent::getContexts();
     $this->path = $config['path'];
     // Ensure contexts is always set to an array.
     if (empty($this->contexts)) {
@@ -174,9 +175,10 @@ class MiniLayout extends Layout {
    * Set a layout path.
    */
   function setPath($path) {
+    parent::setPath($path);
     if ($this->path !== $path) {
       $this->path = $path;
-      $this->resetContexts();
+      parent::resetContexts();
     }
   }
 
@@ -187,15 +189,6 @@ class MiniLayout extends Layout {
     return $this->path;
   }
 
-  /**
-   * Return all contexts (from both the layout and menu item) for this Layout.
-   */
-  function getContexts($include_types = LayoutContext::USAGE_TYPE_ALL) {
-    $this->contexts = parent::getContexts($include_types);
-    if ($this->path) {
-      $this->contexts += layout_context_required_by_path($this->path);
-    }
-    return $this->contexts;
-  }
+
 
 }

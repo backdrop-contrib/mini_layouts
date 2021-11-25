@@ -430,12 +430,12 @@ function mini_layouts_settings_form_context_relationship_edit($form, &$form_stat
  */
 function mini_layouts_settings_form_context_remove($form, &$form_state) {
   $removed_context = $form_state['clicked_button']['#array_parents'][3];
-  $form_state['layout'] = $form_state['layout'];
 
   $contexts = $form_state['layout']->getContexts();
   $context = $contexts[$removed_context];
   if ($context->position) {
     $form_state['layout']->setPath('');
+    $form_state['layout']->clearContexts($removed_context);
   } else {
    // Find all relationships to this context and remove them too.
     $id = $context->settings['id'];
