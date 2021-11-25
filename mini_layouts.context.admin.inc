@@ -355,7 +355,7 @@ function mini_layouts_context_add_form_validate($form, &$form_state) {
       form_set_error('path', t('Only one placeholder is allowed.'));
     }
   }
-  if (isset($form_state['handler'])) {
+  elseif (isset($form_state['handler'])) {
     $handler = $form_state['handler'];
     $handler->formValidate($form, $form_state);
   }
@@ -393,7 +393,6 @@ function mini_layouts_context_add_form_submit($form, &$form_state) {
   }
   elseif ($form_state['values']['context'] == 'path') {
     $layout->setPath($form_state['values']['path']);
-    // $layout->resetContexts();
   }
   else {
     return;

@@ -248,7 +248,6 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     '#access' => count($contexts) > $built_in_contexts,
   );
 
-dpm($contexts);
   foreach ($contexts as $context_key => $layout_context) {
     if ($layout_context->usageType !== LayoutContext::USAGE_TYPE_SYSTEM) {
       // Contexts that are locked to a particular position (such as node/%).
