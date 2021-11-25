@@ -46,7 +46,7 @@ function mini_layouts_context_add_form($form, &$form_state, Layout $layout = NUL
   if (isset($context_id)) {
     $is_new_context = FALSE;
   }
-dpm('opo');
+
   // Ensure AJAX callbacks display the correct title by setting it here.
   $form['#title'] = $is_new_context ? t('Add context') : t('Configure context');
 
@@ -88,6 +88,13 @@ dpm('opo');
     }
   }
   $form['context']['#options']['path'] = 'Context from path';
+  if (is_numeric($context_id)) {
+    $form['context']['#default_value'] = 'path';
+    $form_state['path'] = TRUE;
+  }
+  else {
+    $form_state['path'] = FALSE;
+  }
 
   $form['context_settings'] = array(
     '#type' => 'container',
@@ -95,12 +102,6 @@ dpm('opo');
     '#parents' => array('context_settings'),
   );
   $form['context_settings']['content'] = mini_layouts_context_return_form($form['context_settings'], $form_state);
-  $form['context_settings']['context']['path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Path'),
-    '#access' => !empty($form_state['values']['context']) && ($form_state['values']['context'] == 'path'),
-    '#description' => t('A path which uses the percent symbol ("%") to indicate a placeholder, like "node/%" or "user/%"'),
-  );
 
   $form['actions'] = array(
     '#type' => 'actions',
@@ -301,6 +302,7 @@ function mini_layouts_context_return_form($form, &$form_state) {
   form_load_include($form_state, 'inc', 'layout', 'layout.context.admin');
   $layout = $form_state['layout'];
 
+  $path = FALSE;
   // If no context or relationship has yet been selected, there is no sub-form to display.
   if (!isset($form_state['values']['context']) && !isset($form_state['values']['relationship']) && !isset($form_state['handler'])) {
     return array();
@@ -316,14 +318,26 @@ function mini_layouts_context_return_form($form, &$form_state) {
     $handler->childDelta = $child_delta;
     $handler->is_new = TRUE;
   }
-  elseif (isset($form_state['values']['context']) && $form_state['values']['context'] != 'path') {
+  elseif (!empty($form_state['path']) || (isset($form_state['values']['context']) && $form_state['values']['context'] == 'path')) {
+  dpm($form_state['path'], 'll');
+    $path = TRUE;
+  }
+  else {
     $handler = $form_state['handler'];
   }
 
-  if (isset($form_state['values']['context']) && $form_state['values']['context'] != 'path') {
+  if (!$path) {
     $form_state['layout'] = $layout;
     $form_state['handler'] = $handler;
     $handler->form($form, $form_state);
+  }
+  else {
+    $form['context_settings']['content']['path'] = array(
+      '#type' => 'textfield',
+      '#default_value' => !empty($form_state['context_id']) ? $layout->getPath() : '',
+      '#title' => t('Path'),
+      '#description' => t('A path which uses the percent symbol ("%") to indicate a placeholder, like "node/%" or "user/%"'),
+    );
   }
 
   return $form;
@@ -333,7 +347,7 @@ function mini_layouts_context_return_form($form, &$form_state) {
  * Validation handler for layout_context_add_form().
  */
 function mini_layouts_context_add_form_validate($form, &$form_state) {
-  if ($form_state['values']['context'] == 'path') {
+  if ($form_state['values']['context'] == 'path' && isset($form_state['values']['path'])) {
     $contexts = layout_context_required_by_path($form_state['values']['path']);
     if (empty($contexts)) {
       form_set_error('path', t('The submitted path does not provide context.'));
