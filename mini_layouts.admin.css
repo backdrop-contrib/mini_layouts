@@ -73,3 +73,44 @@
   border-radius: 4px;
   background: #ffffff;
 }
+
+/* Layout dialogs. */
+.layout-dialog {
+  max-width: 600px;
+}
+.layout-block-list {
+  max-height: 300px;
+  overflow: auto;
+  padding-right: 5px; /* LTR */
+}
+[dir="rtl"] .layout-block-list {
+  padding-right: 0;
+  padding-left: 5px;
+}
+.layout-block-add-row.form-item {
+  padding: 5px;
+  border-bottom: 1px solid #CCC;
+  margin: 0;
+}
+.layout-block-add-row.odd {
+  background-color: #F3F4EE;
+}
+.layout-block-list-wrapper {
+  border: 1px solid #CCC;
+  border-bottom: none;
+}
+
+/* Buttons that are displayed as links. */
+.layout-access-remove,
+.layout-access-configure,
+.layout-context-remove,
+.layout-context-configure {
+  padding-left: 10px; /* LTR */
+}
+[dir="rtl"] .layout-access-remove,
+[dir="rtl"] .layout-access-configure,
+[dir="rtl"] .layout-context-remove,
+[dir="rtl"] .layout-context-configure {
+  padding-left: 0;
+  padding-right: 10px;
+}
