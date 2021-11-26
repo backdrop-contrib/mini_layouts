@@ -60,7 +60,7 @@ function mini_layouts_menu() {
   $items['admin/structure/mini-layouts/add'] = array(
     'title' => 'Add mini layouts',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('mini_layouts_add_block_form'),
+    'page arguments' => array('mini_layouts_admin_configure'),
     'access arguments' => array('administer blocks'),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'mini_layouts.admin.inc',

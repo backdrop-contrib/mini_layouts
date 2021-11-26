@@ -489,23 +489,6 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
 }
 
 /**
- * Form constructor for the add block form.
- *
- * @param array $form
- *   An associative array containing the structure of a portion of the form.
- * @param array $form_state
- *   A keyed array containing the current state of the form.
- *
- * @see mini_layouts_menu()
- * @see mini_layouts_add_block_form_validate()
- * @see mini_layouts_add_block_form_submit()
- * @ingroup forms
- */
-function mini_layouts_add_block_form($form, &$form_state) {
-  return mini_layouts_admin_configure($form, $form_state);
-}
-
-/**
  * Form constructor for the mini layouts block deletion form.
  *
  * @param array $form
