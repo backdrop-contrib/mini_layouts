@@ -53,7 +53,7 @@ class MiniLayout extends Layout {
   function __construct(array $config = array()) {
     parent::__construct($config);
     $this->contexts = parent::getContexts();
-    $this->path = $config['path'];
+    $this->path = isset($config['path']) ? $config['path'] : NULL;
     // Ensure contexts is always set to an array.
     if (empty($this->contexts)) {
       $this->contexts = array();

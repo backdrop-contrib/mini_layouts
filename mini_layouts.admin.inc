@@ -378,6 +378,8 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save mini layout'),
+    '#validate' => array('mini_layouts_admin_configure_validate'),
+    '#submit' => array('mini_layouts_admin_configure_submit'),
   );
   if ($name) {
     $form['actions']['delete'] = array(
@@ -456,7 +458,8 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
   if (!$mini_layout) {
     $mini_layout = mini_layouts_load($name, TRUE);
   }
-  elseif (!$mini_layout) {
+
+  if (!$mini_layout) {
     $block = array(
       'name' => $name,
       'info' => '',
@@ -480,6 +483,9 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
   cache()->delete('layout:mini_layouts:config');
   layout_clear_layout_tempstore($mini_layout->name);
   backdrop_static_reset('mini_layouts_block_info');
+
+  backdrop_set_message(t('The mini layout has been created.'));
+  $form_state['redirect'] = 'admin/structure/mini-layouts/manage/' . $mini_layout->name . '/configure';
 }
 
 /**
@@ -497,41 +503,6 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
  */
 function mini_layouts_add_block_form($form, &$form_state) {
   return mini_layouts_admin_configure($form, $form_state);
-}
-
-/**
- * Form validation handler for mini_layouts_add_mini_layouts_form().
- *
- * @param array $form
- *   An associative array containing the structure of a portion of the form.
- * @param array $form_state
- *   A keyed array containing the current state of the form.
- *
- * @see mini_layouts_add_mini_layouts_form()
- * @see mini_layouts_add_block_form_submit()
- */
-function mini_layouts_add_block_form_validate($form, &$form_state) {
-  return mini_layouts_admin_configure_validate($form, $form_state);
-}
-
-/**
- * Form submission handler for mini_layouts_add_block_form().
- *
- *
- * @param array $form
- *   An associative array containing the structure of a portion of the form.
- * @param array $form_state
- *   A keyed array containing the current state of the form.
- *
- * Saves the new mini layouts block.
- *
- * @see mini_layouts_add_block_form()
- * @see mini_layouts_add_block_form_validate()
- */
-function mini_layouts_add_block_form_submit($form, &$form_state) {
-  mini_layouts_block_layout_save($form_state['values'], $form_state['values']['name']);
-  backdrop_set_message(t('The block has been created.'));
-  $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
 
 /**
