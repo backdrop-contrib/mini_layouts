@@ -20,7 +20,7 @@ function mini_layouts_admin_list() {
   foreach ($mini_layouts_block_info as $name => $block_info) {
     $row = array();
     $row[] = theme('label_machine_name__block', array(
-      'label' => $block_info['info'],
+      'label' => $block_info['title'],
       'machine_name' => $name,
     ));
     $row[] = filter_xss($block_info['description']);
@@ -103,26 +103,26 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   }
   else {
     $config = array(
-      'info' => '',
+      'block_title' => '',
       'title' => '',
-      'body' => array('value' => '', 'format' => NULL),
+      'description' => '',
       'layout_template' => 'boxton',
     );
     $mini_layout = new MiniLayout($config);
   }
   $form_state['layout'] = $mini_layout;
 
-  if ($mini_layout->info) {
-    backdrop_set_title(t("'%name' block", array('%name' => $mini_layout->info)), PASS_THROUGH);
+  if ($mini_layout->title) {
+    backdrop_set_title(t("'%name' block", array('%name' => $mini_layout->title)), PASS_THROUGH);
   }
   else {
     backdrop_set_title(t('Add mini layouts block'));
   }
 
-  $form['info'] = array(
+  $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Admin label'),
-    '#default_value' => $mini_layout->info,
+    '#default_value' => $mini_layout->title,
     '#maxlength' => 64,
     '#description' => t('This text is used only in administrative interfaces. It will not be shown to site visitors.'),
     '#required' => TRUE,
@@ -134,7 +134,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     '#maxlength' => 128,
     '#machine_name' => array(
       'exists' => 'mini_layouts_load',
-      'source' => array('info'),
+      'source' => array('title'),
     ),
     '#description' => t('A unique machine-readable name for this Block. It must only contain lowercase letters, numbers, and underscores.'),
     '#disabled' => isset($mini_layout->name),
@@ -147,10 +147,10 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     '#description' => t('This text is used only in administrative interfaces. It will not be shown to site visitors.<br />Allowed HTML tags: @tags', array('@tags' => _filter_xss_display_allowed_tags())),
     '#id' => 'block-description',
   );
-  $form['title'] = array(
+  $form['block_title'] = array(
     '#type' => 'textfield',
-    '#title' => t('Display title'),
-    '#default_value' => $mini_layout->title,
+    '#title' => t('Block title'),
+    '#default_value' => $mini_layout->block_title,
     '#maxlength' => 255,
     '#description' => t('The title of the block as shown to the user. This will affect all places where this block is used.'),
   );
@@ -429,8 +429,8 @@ function mini_layouts_admin_configure_cancel($form, &$form_state) {
 function mini_layouts_admin_configure_validate($form, &$form_state) {
   $blocks = mini_layouts_block_info();
   foreach ($blocks as $name => $block) {
-    if ($name != $form_state['values']['name'] && $block['info'] == $form_state['values']['info']) {
-      form_set_error('info', t('Ensure that each block description is unique.'));
+    if ($name != $form_state['values']['name'] && $block['title'] == $form_state['values']['title']) {
+      form_set_error('title', t('Ensure that each block title is unique.'));
       return;
     }
   }
@@ -449,9 +449,9 @@ function mini_layouts_admin_configure_validate($form, &$form_state) {
  * @see mini_layouts_admin_configure_validate()
  */
 function mini_layouts_admin_configure_submit($form, &$form_state) {
-  $edit = $form_state['values'];
+  $values = $form_state['values'];
   $name = $form_state['values']['name'];
-  $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($edit['info']));
+  $name = $name ? $name : preg_replace('/[^a-z0-9_]+/', '_', strtolower($values['title']));
 
   $mini_layout = layout_tempstore_load($name);
 
@@ -462,21 +462,20 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
   if (!$mini_layout) {
     $block = array(
       'name' => $name,
-      'info' => '',
       'title' => '',
+      'block_title' => '',
       'description' => '',
-      'layout_template' => 'boxton',
     );
     $mini_layout = new MiniLayout($block);
   }
 
-  foreach (array('info', 'description', 'title', 'body') as $key) {
-    if (isset($edit[$key])) {
-      $mini_layout->{$key} = $edit[$key];
+  foreach (array('title', 'description', 'block_title') as $key) {
+    if (isset($values[$key])) {
+      $mini_layout->{$key} = $values[$key];
     }
   }
 
-  $mini_layout->setLayoutTemplate($edit['layout_template']);
+  $mini_layout->setLayoutTemplate($values['layout_template']);
   $mini_layout->save();
 
   // Reset the static cache on the block list so this block is picked up.
@@ -503,10 +502,10 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
  */
 function mini_layouts_block_delete($form, &$form_state, $name) {
   $mini_layout = mini_layouts_load($name);
-  $form['info'] = array('#type' => 'hidden', '#value' => $mini_layout->info);
+  $form['title'] = array('#type' => 'hidden', '#value' => $mini_layout->title);
   $form['name'] = array('#type' => 'hidden', '#value' => $name);
 
-  return confirm_form($form, t('Are you sure you want to delete the block %name?', array('%name' => $mini_layout->info)), 'admin/structure/mini-layouts', '', t('Delete'), t('Cancel'));
+  return confirm_form($form, t('Are you sure you want to delete the block %name?', array('%name' => $mini_layout->title)), 'admin/structure/mini-layouts', '', t('Delete'), t('Cancel'));
 }
 
 /**
@@ -522,7 +521,7 @@ function mini_layouts_block_delete($form, &$form_state, $name) {
 function mini_layouts_block_delete_submit($form, &$form_state) {
   $layout = mini_layouts_load($form_state['values']['name']);
   $layout->delete();
-  backdrop_set_message(t('The block %name has been removed.', array('%name' => $form_state['values']['info'])));
+  backdrop_set_message(t('The block %name has been removed.', array('%name' => $form_state['values']['title'])));
   $form_state['redirect'] = 'admin/structure/mini-layouts';
 }
 

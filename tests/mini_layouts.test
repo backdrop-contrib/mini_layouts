@@ -47,7 +47,7 @@ class MiniLayoutsBlockTestCase extends BackdropWebTestCase {
 
     // Add a new mini layouts block by filling out the input form on the admin/structure/block/add page.
     $mini_layouts_block = array();
-    $mini_layouts_block['info'] = $this->randomName(8);
+    $mini_layouts_block['title'] = $this->randomName(8);
     $mini_layouts_block['delta'] = strtolower($this->randomName(8));
     $mini_layouts_block['title'] = $this->randomName(8);
     $mini_layouts_block['body[value]'] = $this->randomName(32) . $image_string;
@@ -86,7 +86,7 @@ class MiniLayoutsBlockTestCase extends BackdropWebTestCase {
     // Delete the created mini layouts block & verify that it's been deleted and no longer appearing on the page.
     $this->clickLink(t('Delete'));
     $this->backdropPost('admin/structure/block/manage/' . $mini_layouts_block['delta'] . '/delete', array(), 'Delete');
-    $this->assertRaw(t('The block %title has been removed.', array('%title' => $mini_layouts_block['info'])), 'Mini layouts block successfully deleted.');
+    $this->assertRaw(t('The block %title has been removed.', array('%title' => $mini_layouts_block['title'])), 'Mini layouts block successfully deleted.');
     $this->assertNoText(t($mini_layouts_block['title']), 'Mini layouts block no longer appears on page.');
 
     // Note that file usages are NOT removed after a block has been deleted.
@@ -99,7 +99,7 @@ class MiniLayoutsBlockTestCase extends BackdropWebTestCase {
   function testMinilayoutsBlockFormat() {
     // Add a new mini layouts block by filling out the input form on the admin/structure/block/add page.
     $mini_layouts_block = array();
-    $mini_layouts_block['info'] = $this->randomName(8);
+    $mini_layouts_block['title'] = $this->randomName(8);
     $mini_layouts_block['delta'] = strtolower($this->randomName(8));
     $mini_layouts_block['title'] = $this->randomName(8);
     $mini_layouts_block['body[value]'] = '<h1>Raw HTML</h1>';
