@@ -1,12 +1,12 @@
 {
     "_config_name": "layout.flexible.austin",
     "name": "austin",
-    "title": "Austin",
+    "title": "Austin (3,1,3)",
     "description": "3 Rows (3,1,3)",
     "rows": {
         "84675408-9144-4d6b-8600-fa3dad196ff8": {
             "contains": "region_4_4_4",
-            "element": "header",
+            "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {
@@ -26,7 +26,7 @@
         },
         "1798ef91-ca9d-4d65-9c00-c91b2caf86fb": {
             "contains": "region_4_4_4",
-            "element": "footer",
+            "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {

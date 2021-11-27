@@ -1,12 +1,12 @@
 {
     "_config_name": "layout.flexible.los_angeles",
     "name": "los_angeles",
-    "title": "Los Angeles",
+    "title": "Los Angeles (1,2,3)",
     "description": "3 Rows (1,2,3)",
     "rows": {
         "a126c3a8-4ff5-4945-ab00-c464ef0c7140": {
             "contains": "region_12",
-            "element": "header",
+            "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {
@@ -25,7 +25,7 @@
         },
         "0caeabcb-ff8f-4a90-8f46-700e298fb2ec": {
             "contains": "region_4_4_4",
-            "element": "footer",
+            "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {

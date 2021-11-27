@@ -1,12 +1,12 @@
 {
-    "_config_name": "layout.flexible.st_louis",
-    "name": "st_louis",
-    "title": "Baltimore",
+    "_config_name": "layout.flexible.baltimore",
+    "name": "baltimore",
+    "title": "Baltimore (2,2,2)",
     "description": "3 Rows (2,2,2)",
     "rows": {
         "a5f06ebf-b9da-4bbd-8e04-4e43fbd14f37": {
             "contains": "region_6_6",
-            "element": "header",
+            "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {
@@ -26,7 +26,7 @@
         },
         "67e9bce3-4741-4480-9c09-9dd03fc5baec": {
             "contains": "region_6_6",
-            "element": "footer",
+            "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {
