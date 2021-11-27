@@ -110,7 +110,7 @@ function mini_layouts_menu() {
 function mini_layouts_config_info() {
   $prefixes['layout.mini_layouts'] = array(
     'name_key' => 'name',
-    'label_key' => 'info',
+    'label_key' => 'title',
     'group' => t('Mini layouts blocks'),
   );
   return $prefixes;
@@ -134,7 +134,7 @@ function mini_layouts_block_info() {
   foreach ($config_names as $block) {
     // $block = config_get($config_name);
     $block_info = array();
-    $block_info['info'] = $block['info'];
+    $block_info['info'] = $block['block_title'];
     $block_info['description'] = !empty($block['description']) ? $block['description'] : NULL;
 
     // If no description was entered, use a generic one.
@@ -152,7 +152,12 @@ function mini_layouts_block_info() {
  *
  * Generates the administrator-defined blocks for display.
  */
-function mini_layouts_block_view($name = '') {
+function mini_layouts_block_view($name = '', $settings = array(), $contexts = array()) {
+  $blocks_info = mini_layouts_block_info();
+  if (!in_array($name, array_keys($blocks_info))) {
+    return;
+  }
+
   $active_layout = mini_layout_get_layout_by_path();
 
   if (!empty($active_layout) && $active_layout->name == $name) {
@@ -175,7 +180,7 @@ function mini_layouts_block_view($name = '') {
   $rendering[$name] = TRUE;
 
   $renderer = layout_create_renderer('mini_layouts_renderer', $layout);
-  $data['subject'] = strlen($layout->title) ? check_plain($layout->title) : NULL;
+  $data['subject'] = strlen($layout->block_title) ? check_plain($layout->block_title) : NULL;
   $data['content'] = array(
     '#markup' => $renderer->render(),
     '#weight' => 0,
@@ -202,7 +207,6 @@ function mini_layouts_edit_content($name) {
     $layout->locked = FALSE;
   }
 
-  $layout->setPath('mini_layouts_block/' . $name);
   module_load_include('inc', 'layout', 'layout.admin');
   return backdrop_get_form('layout_content_form', $layout);
 }

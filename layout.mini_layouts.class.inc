@@ -6,11 +6,11 @@
  */
 class MiniLayout extends Layout {
   /**
-   * The admin label of the mini layout.
+   * The label of the block on view.
    *
    * @var string
    */
-  var $info = '';
+  var $block_title = '';
 
   /**
    * The block delta of the mini layout.
@@ -86,7 +86,7 @@ class MiniLayout extends Layout {
     $data = array(
       'path' => $this->path,
       'name' => $this->name,
-      'info' => $this->info,
+      'block_title' => $this->block_title,
       'title' => $this->title,
       'description' => $this->description,
       'renderer_name' => $this->renderer_name,
