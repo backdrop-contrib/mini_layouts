@@ -20,7 +20,7 @@ function mini_layouts_admin_list() {
   foreach ($mini_layouts_block_info as $name => $block_info) {
     $row = array();
     $row[] = theme('label_machine_name__block', array(
-      'label' => $block_info['title'],
+      'label' => $block_info['info'],
       'machine_name' => $name,
     ));
     $row[] = filter_xss($block_info['description']);
