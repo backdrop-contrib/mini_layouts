@@ -152,7 +152,12 @@ function mini_layouts_block_info() {
  *
  * Generates the administrator-defined blocks for display.
  */
-function mini_layouts_block_view($name = '') {
+function mini_layouts_block_view($name = '', $settings = array(), $contexts = array()) {
+  $blocks_info = mini_layouts_block_info();
+  if (!in_array($name, array_keys($blocks_info))) {
+    return;
+  }
+
   $active_layout = mini_layout_get_layout_by_path();
 
   if (!empty($active_layout) && $active_layout->name == $name) {
