@@ -1,7 +1,7 @@
 {
-    "_config_name": "layout.flexible.new_orleans",
-    "name": "new_orleans",
-    "title": "New Orleans (2,1,2)",
+    "_config_name": "layout.flexible.two_one_two",
+    "name": "two_one_two",
+    "title": "Two-one-two",
     "description": "3 Rows (2,1,2)",
     "rows": {
         "4232b1e9-0712-4958-8e05-5b23e26b7805": {

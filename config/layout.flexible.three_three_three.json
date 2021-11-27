@@ -1,29 +1,32 @@
 {
-    "_config_name": "layout.flexible.los_angeles",
-    "name": "los_angeles",
-    "title": "Los Angeles (1,2,3)",
-    "description": "3 Rows (1,2,3)",
+    "_config_name": "layout.flexible.three_three_three",
+    "name": "three_three_three",
+    "title": "Three-three-three",
+    "description": "3 Rows (3,3,3)",
     "rows": {
-        "a126c3a8-4ff5-4945-ab00-c464ef0c7140": {
-            "contains": "region_12",
+        "07908e9d-dd00-4f14-9500-ab35a8359a08": {
+            "contains": "region_4_4_4",
             "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Top"
+                "region_name_0": "Top Left",
+                "region_name_1": "Top Center",
+                "region_name_2": "Top Right"
             }
         },
-        "ca9e2cc8-eae9-46b7-bf37-559e666b5081": {
-            "contains": "region_6_6",
+        "779caf18-1910-4abf-970b-11f53be4fb83": {
+            "contains": "region_4_4_4",
             "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {
                 "region_name_0": "Middle Left",
-                "region_name_1": "Middle Right"
+                "region_name_1": "Middle Center",
+                "region_name_2": "Middle Right"
             }
         },
-        "0caeabcb-ff8f-4a90-8f46-700e298fb2ec": {
+        "7aa5733b-eb36-42c1-9800-0bd38c870a1b": {
             "contains": "region_4_4_4",
             "element": "div",
             "classes": "",

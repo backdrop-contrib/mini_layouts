@@ -1,0 +1,35 @@
+{
+    "_config_name": "layout.flexible.one_one_one",
+    "name": "one_one_one",
+    "title": "One-one-one",
+    "description": "",
+    "rows": {
+        "d7e3925e-bd62-4e3e-b009-9b9af357ce79": {
+            "contains": "region_12",
+            "element": "div",
+            "classes": "",
+            "container": "container",
+            "region_names": {
+                "region_name_0": "Top"
+            }
+        },
+        "b4b1ceaa-3d4c-474c-9e12-18586115c2b4": {
+            "contains": "region_12",
+            "element": "div",
+            "classes": "",
+            "container": "container",
+            "region_names": {
+                "region_name_0": "Middle"
+            }
+        },
+        "dbe7d26d-85e8-4637-8300-de3a66d7467e": {
+            "contains": "region_12",
+            "element": "div",
+            "classes": "",
+            "container": "container",
+            "region_names": {
+                "region_name_0": "Bottom"
+            }
+        }
+    }
+}
