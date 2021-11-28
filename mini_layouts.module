@@ -132,9 +132,8 @@ function mini_layouts_block_info() {
   $config_names = layout_get_all_configs('mini_layouts');
 
   foreach ($config_names as $block) {
-    // $block = config_get($config_name);
     $block_info = array();
-    $block_info['info'] = $block['block_title'];
+    $block_info['info'] = !empty($block['block_title']) ? $block['block_title'] : $block['title'];
     $block_info['description'] = !empty($block['description']) ? $block['description'] : NULL;
 
     // If no description was entered, use a generic one.
