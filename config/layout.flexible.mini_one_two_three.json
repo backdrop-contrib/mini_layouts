@@ -1,30 +1,29 @@
 {
-    "_config_name": "layout.flexible.three_one_three",
-    "name": "three_one_three",
-    "title": "Three-one-three",
-    "description": "3 Rows (3,1,3)",
+    "_config_name": "layout.flexible.mini_one_two_three",
+    "name": "mini_one_two_three",
+    "title": "Mini-1-2-3",
+    "description": "3 Rows (1,2,3)",
     "rows": {
-        "84675408-9144-4d6b-8600-fa3dad196ff8": {
-            "contains": "region_4_4_4",
-            "element": "div",
-            "classes": "",
-            "container": "container",
-            "region_names": {
-                "region_name_0": "Top Left",
-                "region_name_1": "Top Center",
-                "region_name_2": "Top Right"
-            }
-        },
-        "c3349c23-989f-48a5-9b07-7dbcf2a56048": {
+        "a126c3a8-4ff5-4945-ab00-c464ef0c7140": {
             "contains": "region_12",
             "element": "div",
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Middle"
+                "region_name_0": "Top"
             }
         },
-        "1798ef91-ca9d-4d65-9c00-c91b2caf86fb": {
+        "ca9e2cc8-eae9-46b7-bf37-559e666b5081": {
+            "contains": "region_6_6",
+            "element": "div",
+            "classes": "",
+            "container": "container",
+            "region_names": {
+                "region_name_0": "Middle Left",
+                "region_name_1": "Middle Right"
+            }
+        },
+        "0caeabcb-ff8f-4a90-8f46-700e298fb2ec": {
             "contains": "region_4_4_4",
             "element": "div",
             "classes": "",

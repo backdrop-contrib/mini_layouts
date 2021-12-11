@@ -1,7 +1,7 @@
 {
-    "_config_name": "layout.flexible.two_one_two",
-    "name": "two_one_two",
-    "title": "Two-one-two",
+    "_config_name": "layout.flexible.mini_two_one_two",
+    "name": "mini_two_one_two",
+    "title": "Mini-2-1-2",
     "description": "3 Rows (2,1,2)",
     "rows": {
         "4232b1e9-0712-4958-8e05-5b23e26b7805": {

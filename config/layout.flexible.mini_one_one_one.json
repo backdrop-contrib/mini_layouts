@@ -1,7 +1,7 @@
 {
-    "_config_name": "layout.flexible.one_one_one",
-    "name": "one_one_one",
-    "title": "One-one-one",
+    "_config_name": "layout.flexible.mini_one_one_one",
+    "name": "mini_one_one_one",
+    "title": "Mini-1-1-1",
     "description": "",
     "rows": {
         "d7e3925e-bd62-4e3e-b009-9b9af357ce79": {
