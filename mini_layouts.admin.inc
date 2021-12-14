@@ -416,28 +416,6 @@ function mini_layouts_admin_configure_cancel($form, &$form_state) {
 }
 
 /**
- * Form validation handler for mini_layouts_admin_configure().
- *
- * @param array $form
- *   An associative array containing the structure of a portion of the form.
- * @param array $form_state
- *   A keyed array containing the current state of the form.
- *
- * @see mini_layouts_admin_configure()
- * @see mini_layouts_admin_configure_submit()
- */
-function mini_layouts_admin_configure_validate($form, &$form_state) {
-  $blocks = mini_layouts_block_info();
-  foreach ($blocks as $name => $block) {
-    if ($name != $form_state['values']['name'] && $block['title'] == $form_state['values']['title']) {
-      form_set_error('title', t('Ensure that each block title is unique.'));
-      return;
-    }
-  }
-}
-
-
-/**
  * Form submission handler for mini_layouts_admin_configure().
  *
  * @param array $form
