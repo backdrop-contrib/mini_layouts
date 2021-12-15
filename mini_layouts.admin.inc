@@ -183,12 +183,12 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   // Get all contexts except those provided by relationships.
   $contexts = $mini_layout->getContexts(LayoutContext::USAGE_TYPE_ALL ^ LayoutContext::USAGE_TYPE_RELATIONSHIP);
   $built_in_contexts = isset($contexts['overrides_path']) ? 2 : 1;
+  $description = !empty($mini_layout->name) ? t('(Optional) Contexts define what blocks are available within this layout.') : t('Save Mini Layout to enable contexts');
   $form['context_wrapper'] = array(
     '#title' => t('Contexts'),
     '#type' => 'item',
     '#id' => 'context-wrapper',
-    '#description' => t('(Optional) Contexts define what blocks are available within this layout. Most placeholders in the path will be associated with a context automatically.'),
-    // Current user context is always present.
+    '#description' => $description,
   );
   $form['context_wrapper']['#access'] = !$mini_layout->isDefault();
   $form['context_wrapper']['#prefix'] = '<div id="layout-contexts">';
@@ -206,6 +206,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     '#value' => t('Add context'),
     '#attributes' => array('class' => array('layout-link-button', 'layout-access-add')),
     '#validate' => array(),
+    '#access' => !empty($mini_layout->name),
     '#submit' => array(
       'layout_settings_form_update_layout',
       'mini_layouts_settings_form_context_add',
@@ -224,6 +225,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
       '#value' => t('Add relationship'),
       '#attributes' => array('class' => array('layout-link-button', 'layout-access-add')),
       '#validate' => array(),
+      '#access' => !empty($mini_layout->name),
       '#submit' => array(
         'layout_settings_form_update_layout',
         'mini_layouts_settings_form_context_add',
