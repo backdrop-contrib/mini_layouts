@@ -380,7 +380,6 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save mini layout'),
-    '#validate' => array('mini_layouts_admin_configure_validate'),
     '#submit' => array('mini_layouts_admin_configure_submit'),
   );
   if ($name) {
