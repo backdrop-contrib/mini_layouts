@@ -458,7 +458,7 @@ function mini_layouts_load($layout_name, $set_tempstore = FALSE) {
   $return = $layouts[$layout_name];
   if ($set_tempstore && !empty($return)) {
     layout_set_layout_tempstore($return);
-  }
+   $return->locked = FALSE;  }
 
   return $return;
 }
