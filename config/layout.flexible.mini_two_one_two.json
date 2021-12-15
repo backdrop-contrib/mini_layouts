@@ -1,0 +1,37 @@
+{
+    "_config_name": "layout.flexible.mini_two_one_two",
+    "name": "mini_two_one_two",
+    "title": "Mini-2-1-2",
+    "description": "3 Rows (2,1,2)",
+    "rows": {
+        "4232b1e9-0712-4958-8e05-5b23e26b7805": {
+            "contains": "region_6_6",
+            "element": "div",
+            "classes": "",
+            "container": "container",
+            "region_names": {
+                "region_name_0": "Top Left",
+                "region_name_1": "Top Right"
+            }
+        },
+        "60f4ba44-0940-4d67-9d21-33992b23c2f2": {
+            "contains": "region_12",
+            "element": "div",
+            "classes": "",
+            "container": "container",
+            "region_names": {
+                "region_name_0": "Middle"
+            }
+        },
+        "773c44b8-a545-4c25-a400-eb83df334aac": {
+            "contains": "region_6_6",
+            "element": "div",
+            "classes": "",
+            "container": "container",
+            "region_names": {
+                "region_name_0": "Bottom Left",
+                "region_name_1": "Bottom Right"
+            }
+        }
+    }
+}
