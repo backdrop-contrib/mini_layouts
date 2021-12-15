@@ -88,7 +88,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   form_load_include($form_state, 'inc', 'layout', 'layout.admin');
 
   $form['#attached']['js'][] = backdrop_get_path('module', 'layout') . '/js/layout.admin.js';
-  $form['#attached']['css'][] = backdrop_get_path('module', 'mini_layouts') . '/mini_layouts.admin.css';
+  $form['#attached']['css'][] = backdrop_get_path('module', 'mini_layouts') . '/css/mini-layouts.admin.css';
 
   if ($name) {
     $mini_layout = layout_tempstore_load($name);

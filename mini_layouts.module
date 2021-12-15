@@ -152,6 +152,8 @@ function mini_layouts_block_info() {
  * Generates the administrator-defined blocks for display.
  */
 function mini_layouts_block_view($name = '', $settings = array(), $contexts = array()) {
+  backdrop_add_css(backdrop_get_path('module', 'mini_layouts') . '/css/mini-layouts.css');
+
   $blocks_info = mini_layouts_block_info();
   if (!in_array($name, array_keys($blocks_info))) {
     return;

@@ -9,5 +9,3 @@ version = BACKDROP_VERSION
 backdrop = 1.x
 
 configure = admin/structure/mini_layouts
-
-stylesheets[all][] = mini_layouts.css
