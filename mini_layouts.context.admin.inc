@@ -296,7 +296,6 @@ function mini_layouts_context_add_load_context_nojs($form, &$form_state) {
 /**
  * Helper function to return a partial context or relationship settings form.
  */
- // @todo: this is not being used.
 function mini_layouts_context_return_form($form, &$form_state) {
   form_load_include($form_state, 'inc', 'mini_layouts', 'mini_layouts.context.admin');
   form_load_include($form_state, 'inc', 'layout', 'layout.context.admin');
