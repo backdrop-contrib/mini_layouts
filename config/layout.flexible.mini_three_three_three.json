@@ -10,9 +10,18 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Top Left",
-                "region_name_1": "Top Center",
-                "region_name_2": "Top Right"
+                "region_0": {
+                    "label": "Top Left",
+                    "name": "top-left"
+                },
+                "region_1": {
+                    "label": "Top Center",
+                    "name": "top-center"
+                },
+                "region_2": {
+                    "label": "Top Right",
+                    "name": "top-right"
+                }
             }
         },
         "779caf18-1910-4abf-970b-11f53be4fb83": {
@@ -21,9 +30,18 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Middle Left",
-                "region_name_1": "Middle Center",
-                "region_name_2": "Middle Right"
+                "region_0": {
+                    "label": "Middle Left",
+                    "name": "middle-left"
+                },
+                "region_1": {
+                    "label": "Middle Center",
+                    "name": "middle-center"
+                },
+                "region_2": {
+                    "label": "Middle Right",
+                    "name": "middle-right"
+                }
             }
         },
         "7aa5733b-eb36-42c1-9800-0bd38c870a1b": {
@@ -32,9 +50,18 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Bottom Left",
-                "region_name_1": "Bottom Center",
-                "region_name_2": "Bottom Right"
+                "region_0": {
+                    "label": "Bottom Left",
+                    "name": "bottom-left"
+                },
+                "region_1": {
+                    "label": "Bottom Center",
+                    "name": "bottom-center"
+                },
+                "region_2": {
+                    "label": "Bottom Right",
+                    "name": "bottom-right"
+                }
             }
         }
     }

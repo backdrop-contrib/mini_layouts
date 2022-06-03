@@ -10,7 +10,10 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Top"
+                "region_0": {
+                    "label": "Top",
+                    "name": "top"
+                }
             }
         },
         "ca9e2cc8-eae9-46b7-bf37-559e666b5081": {
@@ -19,8 +22,14 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Middle Left",
-                "region_name_1": "Middle Right"
+                "region_0": {
+                    "label": "Middle Left",
+                    "name": "middle-left"
+                },
+                "region_1": {
+                    "label": "Middle Right",
+                    "name": "middle-right"
+                }
             }
         },
         "0caeabcb-ff8f-4a90-8f46-700e298fb2ec": {
@@ -29,9 +38,18 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Bottom Left",
-                "region_name_1": "Bottom Center",
-                "region_name_2": "Bottom Right"
+                "region_0": {
+                    "label": "Bottom Left",
+                    "name": "bottom-left"
+                },
+                "region_1": {
+                    "label": "Bottom Center",
+                    "name": "bottom-center"
+                },
+                "region_2": {
+                    "label": "Bottom Right",
+                    "name": "bottom-right"
+                }
             }
         }
     }

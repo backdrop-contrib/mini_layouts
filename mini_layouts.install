@@ -5,3 +5,23 @@
  * Install, update and uninstall functions for the mini_layouts module.
  */
 
+
+/**
+ * Update to new flexible layout label format.
+ */
+function mini_layouts_update_1000() {
+  $mini_layouts = config_get_names_with_prefix('layout.flexible.mini');
+  foreach ($mini_layouts as $layout_name) {
+    $config = config($layout_name);
+    $rows = $config->get('rows');
+    foreach ($rows as $row_key => $row) {
+      foreach ($row['region_names'] as $region_key => $region_name) {
+        $number = str_replace('region_name_', '', $region_key);
+        $config->set('rows.' . $row_key . '.region_names.region_' . $number . '.label', $region_name);
+        $config->set('rows.' . $row_key . '.region_names.region_' . $number . '.name', backdrop_html_class($region_name));
+        $config->clear('rows.' . $row_key . '.region_names.' . $region_key);
+      }
+    }
+    $config->save();
+  }
+}

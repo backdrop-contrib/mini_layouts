@@ -10,7 +10,10 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Top"
+                "region_0": {
+                    "label": "Top",
+                    "name": "top"
+                }
             }
         },
         "b4b1ceaa-3d4c-474c-9e12-18586115c2b4": {
@@ -19,7 +22,10 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Middle"
+                "region_0": {
+                    "label": "Middle",
+                    "name": "middle"
+                }
             }
         },
         "dbe7d26d-85e8-4637-8300-de3a66d7467e": {
@@ -28,7 +34,10 @@
             "classes": "",
             "container": "container",
             "region_names": {
-                "region_name_0": "Bottom"
+                "region_0": {
+                    "label": "Bottom",
+                    "name": "bottom"
+                }
             }
         }
     }
