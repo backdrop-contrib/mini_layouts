@@ -462,3 +462,15 @@ function mini_layouts_load($layout_name, $set_tempstore = FALSE) {
 
   return $return;
 }
+/**
+ * Mini layout exist callback.
+ */
+function mini_layouts_name_exists($layout_name) {
+  $layouts = mini_layout_load_multiple(array($layout_name));
+
+  if (empty($layouts[$layout_name])) {
+    return layout_load($layout_name);
+  }
+
+  return TRUE;
+}

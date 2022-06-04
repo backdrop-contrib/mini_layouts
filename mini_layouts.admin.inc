@@ -130,14 +130,14 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
   );
   $form['name'] = array(
     '#type' => 'machine_name',
-    '#default_value' => $mini_layout->name,
+    '#default_value' => $name ? $mini_layout->name : '',
     '#maxlength' => 128,
     '#machine_name' => array(
-      'exists' => 'mini_layouts_load',
+      'exists' => 'mini_layouts_name_exists',
       'source' => array('title'),
     ),
     '#description' => t('A unique machine-readable name for this Block. It must only contain lowercase letters, numbers, and underscores.'),
-    '#disabled' => isset($mini_layout->name),
+    '#disabled' => $name,
   );
   $form['description'] = array(
     '#type' => 'textfield',
