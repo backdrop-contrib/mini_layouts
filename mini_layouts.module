@@ -263,9 +263,18 @@ function mini_layouts_autoload_info() {
  * Implements hook_preprocess_layout().
  */
 function mini_layouts_preprocess_layout(&$variables) {
-  // This tricks layout_preprocess_layout() into hiding the page title and tabs.
   if ($variables['layout']->module == 'mini_layouts') {
+    // This tricks layout_preprocess_layout() into hiding the page title and tabs.
     $variables['admin'] = TRUE;
+    
+    // Add an additional class for mini-layouts only.
+    $new_class = backdrop_clean_css_identifier('mini-layout--' . $variables['layout']->layout_template);
+    array_unshift($variables['classes'], $new_class);
+    // Alter the 'layout' class so page layout styles are not applied.
+    $key = array_search('layout', $variables['classes']);
+    if ($key !== FALSE) {
+      $variables['classes'][$key] = 'mini-layout';
+    }
   }
 }
 
