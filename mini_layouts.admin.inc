@@ -143,6 +143,7 @@ function mini_layouts_admin_configure($form, &$form_state, $name = NULL) {
     '#type' => 'textfield',
     '#title' => t('Admin description'),
     '#default_value' => $mini_layout->description,
+    '#field_prefix' => t('Mini-layout: '),
     '#maxlength' => 128,
     '#description' => t('This text is used only in administrative interfaces. It will not be shown to site visitors.<br />Allowed HTML tags: @tags', array('@tags' => _filter_xss_display_allowed_tags())),
     '#id' => 'block-description',
