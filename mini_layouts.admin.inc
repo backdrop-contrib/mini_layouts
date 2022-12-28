@@ -462,7 +462,7 @@ function mini_layouts_admin_configure_submit($form, &$form_state) {
   layout_clear_layout_tempstore($mini_layout->name);
   backdrop_static_reset('mini_layouts_block_info');
 
-  backdrop_set_message(t('The mini layout has been created.'));
+  backdrop_set_message(t('The mini layout has been saved.'));
   $form_state['redirect'] = 'admin/structure/mini-layouts/manage/' . $mini_layout->name . '/configure';
 }
 
