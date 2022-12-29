@@ -1,5 +1,5 @@
 [MiniLayoutsBlockTestCase]
-name = Mini layouts block functionality
-description = Add, edit and delete mini layouts block. Configure and move a module-defined block.
-group = Block
-file = block.test
+name = Mini Layouts block test
+description = Test Mini Layouts block functionality.
+group = Mini layouts
+file = mini_layouts.test

@@ -19,6 +19,8 @@ function mini_layouts_admin_list() {
   $rows = array();
   foreach ($mini_layouts_block_info as $name => $block_info) {
     $row = array();
+    // Note that if the Block Title is set, that is displayed instead of the
+    // Admin Label, which is a bit weird.
     $row[] = theme('label_machine_name__block', array(
       'label' => $block_info['info'],
       'machine_name' => $name,
@@ -61,6 +63,7 @@ function mini_layouts_admin_list() {
     '#rows' => $rows,
     '#header' => $header,
     '#empty' => t('No mini layouts blocks have been created yet.'),
+    '#attributes' => array('class' =>   array('mini-layouts-list')),
   );
 }
 
