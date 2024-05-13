@@ -449,7 +449,7 @@ function mini_layout_load_multiple($layout_names) {
 /**
  * Load a single mini layout.
  *
- * @return MiniLayout[]
+ * @return MiniLayout
  *   A MiniLayout object instance.
  */
 function mini_layouts_load($layout_name, $set_tempstore = FALSE) {
